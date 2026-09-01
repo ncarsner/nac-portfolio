@@ -45,10 +45,10 @@ def nav(label_fn=None, marker=True):
                 st.rerun()
 
 
-def stage(a, height=470, placeholder_tint="#1f6feb"):
+def stage(a, height=470, placeholder_tint="#1f6feb", theme="light"):
     """Run the artifact. This is the block round 1 was won on — never a thumbnail."""
     if a.get("embed"):
-        embeds.render(st, a["embed"], height=height)
+        embeds.render(st, a["embed"], height=height, theme=theme)
     elif a.get("install"):
         st.code(a["install"], language="bash")
         st.code(a["sample"], language="python")

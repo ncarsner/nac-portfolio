@@ -1,0 +1,11 @@
+# PROTOTYPE — pin the base theme so the variants' own CSS is not fighting
+# whatever the viewer's OS dark-mode preference is. Round 3 is all light.
+[theme]
+base = "light"
+backgroundColor = "#fcfcfd"
+secondaryBackgroundColor = "#f1f3f5"
+textColor = "#10151a"
+primaryColor = "#0b5fd0"
+
+[browser]
+gatherUsageStats = false

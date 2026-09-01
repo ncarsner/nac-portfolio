@@ -39,18 +39,21 @@ def placeholder(label: str, sub: str, a: str = "#1f6feb", b: str = "#0b1220", w=
 
 DEMOS_DIR = _Path(__file__).parent / "demos"
 
-# id -> (file, default height). In the real site these become URLs of deployed apps;
-# the mechanic (an iframe holding a running thing) is identical either way.
+# id -> (file stem, default height). In the real site these become URLs of deployed
+# apps; the mechanic (an iframe holding a running thing) is identical either way.
+# Each demo ships a light and a dark build so an embedded app can match the page
+# it sits on rather than punching a dark hole in a light design.
 EMBEDS = {
-    "regex_lab": ("regex_lab.html", 430),
-    "deploy_board": ("deploy_board.html", 400),
+    "regex_lab": ("regex_lab", 430),
+    "deploy_board": ("deploy_board", 400),
 }
 
 
-def render(st, key, height=None):
+def render(st, key, height=None, theme="light"):
     """Render a live demo in an iframe. Returns True if something was drawn."""
     if key not in EMBEDS:
         return False
-    fname, h = EMBEDS[key]
+    stem, h = EMBEDS[key]
+    fname = f"{stem}_light.html" if theme == "light" else f"{stem}.html"
     st.iframe(DEMOS_DIR / fname, height=height or h)
     return True

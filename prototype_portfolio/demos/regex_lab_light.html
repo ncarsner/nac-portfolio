@@ -1,0 +1,60 @@
+<!doctype html><meta charset='utf-8'>
+
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+         background:#ffffff; color:#10151a; }
+  .wrap { border:1px solid #e1e4e8; border-radius:10px; overflow:hidden; }
+  .bar { display:flex; align-items:center; gap:8px; padding:8px 12px;
+         background:#f6f7f9; border-bottom:1px solid #e1e4e8; font-size:11px;
+         letter-spacing:.08em; text-transform:uppercase; color:#6b7480; }
+  .dot { width:9px; height:9px; border-radius:50%; background:#1a7f37; }
+  .body { padding:14px; }
+  input, textarea { width:100%; background:#ffffff; color:#10151a;
+    border:1px solid #e1e4e8; border-radius:6px; padding:8px 10px;
+    font: inherit; outline:none; }
+  input:focus, textarea:focus { border-color:#0b5fd0; }
+  label { display:block; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+          color:#6b7480; margin:10px 0 5px; }
+  mark { background:#0b5fd01f; color:#06306b; border-radius:3px;
+         box-shadow:0 0 0 1px #0b5fd066; }
+</style>
+
+<div class="wrap">
+  <div class="bar"><span class="dot"></span> regex lab &middot; live</div>
+  <div class="body">
+    <label>pattern</label>
+    <input id="pat" value="(\w+)@(\w+)\.com" spellcheck="false"/>
+    <label>subject</label>
+    <textarea id="txt" rows="4" spellcheck="false">Ping sam@example.com or ops@meridian.com.
+Fallback: noreply@northgate.com (do not reply)</textarea>
+    <label>matches</label>
+    <div id="out" style="padding:10px;border:1px solid #e1e4e8;border-radius:6px;
+         background:#fbfcfd;white-space:pre-wrap;min-height:56px"></div>
+    <div id="groups" style="margin-top:10px;color:#6b7480;font-size:12px"></div>
+  </div>
+</div>
+<script>
+  const pat = document.getElementById('pat'), txt = document.getElementById('txt'),
+        out = document.getElementById('out'), grp = document.getElementById('groups');
+  const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  function run() {
+    let re;
+    try { re = new RegExp(pat.value, 'g'); }
+    catch (e) { out.innerHTML = '<span style="color:#cf222e">' + esc(e.message) + '</span>';
+                grp.textContent = ''; return; }
+    const s = txt.value; let html = '', last = 0, n = 0, rows = [];
+    for (const m of s.matchAll(re)) {
+      if (m[0] === '') { re.lastIndex++; continue; }
+      n++;
+      html += esc(s.slice(last, m.index)) + '<mark>' + esc(m[0]) + '</mark>';
+      last = m.index + m[0].length;
+      rows.push('#' + n + '  ' + m.slice(1).map((g,i) => '$'+(i+1)+'=' + (g??'—')).join('  '));
+    }
+    html += esc(s.slice(last));
+    out.innerHTML = html || '<span style="color:#6b7480">no matches</span>';
+    grp.textContent = n + ' match' + (n===1?'':'es') + (rows.length ? '  ·  ' + rows.join('   ') : '');
+  }
+  pat.addEventListener('input', run); txt.addEventListener('input', run); run();
+</script>
