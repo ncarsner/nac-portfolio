@@ -30,23 +30,37 @@ are in history at `dc71f07`.
 Read "but lighter" as near-white. Verdict: **too light.** Kept in history at
 `bfcc34d`.
 
-## Round 4 — open
+## Round 4 — settled
 
-> Instrument is right. **How far up from near-black?**
+**Slate** `#1c2128` — the minimal lift off near-black. Now the default.
 
-Rather than run to either end again, this brackets the middle of the range. The
-original Instrument ground was `#0a0c0f`; round 3 was `#fcfcfd`. Density,
-structure and block order are unchanged — the ground tone is the only variable.
+## Round 5 — open
 
-| Key | Name | Ground | What it is |
-|-----|------|--------|------------|
-| `1` | **Slate** | `#1c2128` | The minimal lift off near-black. Still unmistakably a dark interface, just no longer a void. |
-| `2` | **Fog** | `#2b323b` | The far end of "lighter" while still dark. Text contrast comes down to match, so the page reads soft and even rather than punchy. |
-| `3` | **Ash** | `#dfe3e7` | The other reading — light, but with the white taken out. Grey paper and ink-grey text, light without the glare. |
+> Where do the options live, and how loud should they be?
 
-The embedded demos are built once per tone by `demos/build.py`, so a running
-artifact shares the page's ground instead of punching a hole in it. Edit the
-`PALETTES` table there and re-run `python3 demos/build.py`.
+The tone is no longer a prototype variant. Fog and Ash were kept and the choice
+handed to the viewer, together with accessibility settings, from a panel in the
+sidebar's lower left under Contact. So the only thing still being compared is how
+that panel presents itself.
+
+| Key | Name | The bet it makes |
+|-----|------|------------------|
+| `1` | **Swatches** | Colour chips painted with the ground they select, picked by looking rather than reading, plus labelled toggle rows. |
+| `2` | **List** | One row idiom all the way down the sidebar, an icon per option. Nothing new to learn, and it scales if more options land. |
+| `3` | **Drawer** | Collapsed to a single "Appearance" line with a summary until opened. The sidebar belongs to the work, not to its own controls. |
+
+### Settings, in all three
+
+- **Ground tone** — Slate (default), Fog, Ash
+- **Text size** — Normal, Large, Larger
+- **High contrast** — stronger text and borders
+- **Readable font** — wider sans instead of monospace
+- **Underline links** — do not signal links by colour alone
+- **Reduce motion** — stops the live demos animating
+
+State lives in `st.session_state`: in memory, never persisted. Reduce motion is
+built into the demos rather than applied as page CSS — an iframe is a separate
+document, so the still version is a separate build.
 
 ## Run
 
@@ -63,52 +77,58 @@ cycle). Set `PROTOTYPE_SWITCHER=0` to hide the bar.
 ## Layout
 
 ```
-app.py              entry — chrome reset, variant dispatch
-.streamlit/         base theme pinned, so variant CSS is not fighting the
-                    viewer's OS dark-mode preference
-switcher.py         floating bottom bar
+app.py              entry — chrome reset, panel dispatch
+theme.py            palettes + accessibility settings + the whole stylesheet
+page.py             the settled page; takes the options panel as a callable
+switcher.py         floating bottom bar (prototype only)
 proto_boot.html     sidebar repair + arrow keys, iframed at height 1
 content.py          FAKE placeholder data — all in memory, nothing persisted
 embeds.py           iframes the live demos + SVG screenshot placeholders
-demos/build.py      builds each demo once per page tone
-demos/*.html        generated — real, working, dependency-free apps
-variants/shell.py   the settled skeleton — running order, shared by all three
-variants/v1..v3     one ground tone each: CSS + its own block renderers
+demos/build.py      builds each demo per tone, animated and still
+variants/p1..p3     one options-panel presentation each
 ```
 
 ## Streamlit chrome traps, recorded so they are not repeated
 
-All three were hit during this prototype and cost a round each. Verified fixed in
-a real browser via Playwright, not by reasoning.
+Five rounds, five traps. Each was found in a real browser with Playwright, not by
+reasoning — three of them survived a fix that was written from a guess.
 
 1. **Never hide `header[data-testid="stHeader"]` or `[data-testid="stToolbar"]`.**
-   The control that re-opens a collapsed sidebar (`stExpandSidebarButton`) is
-   rendered *inside* that toolbar, inside that header. Hiding either strands the
-   sidebar shut with no way back. Hide the individual toolbar children instead.
-2. **Streamlit persists the sidebar-collapsed flag in `localStorage`** under
+   `stExpandSidebarButton` — the only way to reopen a collapsed sidebar — lives
+   inside them. Hide the individual toolbar children instead.
+2. **The sidebar-collapsed flag persists in `localStorage`** as
    `stSidebarCollapsed-<base>`, and that read **beats** `initial_sidebar_state`.
-   So a sidebar collapsed once stays collapsed on every later reload, forever.
-   No CSS can fix it — `proto_boot.html` clears the flag on load.
-3. **Material icons are ligatures.** Forcing `font-family` on a broad selector
-   like `.stApp span` overrides the icon font and the glyph renders as literal
-   text (`keyboard_double_arrow_left`). `app.py` re-asserts the icon font at
-   higher specificity.
+   A sidebar collapsed once stays collapsed on every later reload. No CSS can fix
+   it; `proto_boot.html` clears the flag on load.
+3. **Material icons are ligatures.** A broad `font-family` override (e.g. on
+   `.stApp span`) renders them as literal text. `app.py` re-asserts the icon font
+   at higher specificity.
+4. **Streamlit's markdown CSS outranks a bare class selector**, so `.pr { font-size }`
+   silently did nothing and the prose rendered at 16px instead of 12.5px. Every
+   size that matters now says `!important`.
+5. **A button with `help=` is wrapped in tooltip spans**, so `.stButton > button`
+   skips it. Use `.stButton button`. This left the entire options panel unstyled
+   while the nav beside it looked correct.
+6. **Streamlit's markdown wrapper does not grow with the inner div's padding.**
+   Headers overflow their own element container; the default 1rem block gap was
+   hiding it, and tightening the gap exposed it. Those containers now carry an
+   explicit `min-height`.
 
 ## Caveats, stated plainly
 
 - **All content is invented.** "Sam Rivera" and every project, metric and link is
   placeholder, present only so the layouts are judged at realistic density.
-- **The demos are real but local.** They are working zero-dependency apps,
-  iframed. In the real site those iframes point at deployed apps instead — the
-  mechanic is identical, which is the part being tested.
+- **The demos are real but local.** Working zero-dependency apps, iframed. In the
+  real site those iframes point at deployed apps instead.
 - **Screenshots are SVG placeholders**, labelled as such.
-- **Code blocks are hand-rolled**, not `st.code`, precisely so the Streamlit base
-  theme cannot leak into a variant's palette.
-- **Streamlit is still on trial.** Everything above leans on CSS keyed to
-  internal class names and test ids. It works today and is exactly the kind of
-  thing that breaks on upgrade — three separate traps in four rounds is data.
+- **Settings do not persist.** Reload and you are back to Slate. Persisting them
+  is a real decision (cookie? localStorage? account?) and a prototype should not
+  quietly assume one.
+- **Streamlit is still on trial.** Six traps in five rounds, all the same shape:
+  depending on internal class names and test ids with no compatibility guarantee.
+  Weigh that before promoting any of this.
 
 ## Reading the result
 
-If none is right, the answer is likely a number plus a nudge — **"Slate but two
-steps lighter"** is directly actionable.
+Pick a panel, or say what to graft — **"Drawer, but the swatches from 1 inside
+it"** is directly actionable.

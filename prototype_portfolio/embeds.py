@@ -51,12 +51,17 @@ EMBEDS = {
 TONES = ("slate", "fog", "ash")
 
 
-def render(st, key, height=None, tone="slate"):
-    """Render a live demo in an iframe. Returns True if something was drawn."""
+def render(st, key, height=None, tone="slate", motion=True):
+    """Render a live demo in an iframe. Returns True if something was drawn.
+
+    `motion=False` picks the still build: an iframe is a separate document, so
+    the page's reduced-motion CSS cannot reach the demo running inside it.
+    """
     if key not in EMBEDS:
         return False
     stem, h = EMBEDS[key]
     if tone not in TONES:
         tone = "slate"
-    st.iframe(DEMOS_DIR / f"{stem}_{tone}.html", height=height or h)
+    suffix = "" if motion else "_still"
+    st.iframe(DEMOS_DIR / f"{stem}_{tone}{suffix}.html", height=height or h)
     return True

@@ -1,24 +1,23 @@
 """
-PROTOTYPE — portfolio UI variants, round 2.  THROWAWAY CODE. Do not promote as-is.
+PROTOTYPE — portfolio, round 5.  THROWAWAY CODE. Do not promote as-is.
 
-Round 1 asked what the site's STRUCTURE should be, and answered it: variant B,
-"Workbench" — a sidebar cataloguing every artifact, a main pane that runs the
-selected one full size. See DECISION.md. That is settled and no longer varies.
+Settled in earlier rounds (see ../DECISION.md and the git log):
+  round 1  LAYOUT    Workbench — sidebar catalogue, main pane runs the artifact
+  round 2  LANGUAGE  Instrument — dense, monospace, hairline rules
+  round 4  TONE      Slate, now the default
 
-Round 2 chose the visual language: "Instrument" — dense, monospace, hairline
-rules, no decoration. Round 3 read "but lighter" as near-white and overshot: the
-verdict was "too light". Round 4 therefore brackets the MIDDLE of that range
-rather than running to either end:
+Round 5 turns the tone from a prototype variant into a real control: the viewer
+picks it, alongside accessibility settings, from a panel in the sidebar's lower
+left under Contact. theme.py holds the palettes and settings; page.py renders
+the settled page and takes the panel as a callable.
 
-    Instrument is right. How far up from near-black?
+So the only thing still under evaluation is the panel itself:
 
-Three ground tones on the identical skeleton (variants/shell.py holds the running
-order). Density and structure are unchanged from the original Instrument — the
-ground tone is the only variable. Switch with ?variant= or the bottom bar:
+    Where do the options live, and how loud should they be?
 
-  1 — Slate  soft charcoal, the minimal lift off near-black
-  2 — Fog    mid slate, low contrast; the far end of "lighter" still dark
-  3 — Ash    light grey paper, not white; light without the glare
+  1 — Swatches  colour chips you pick by looking, plus toggle rows
+  2 — List      one row idiom all the way down, an icon per option
+  3 — Drawer    collapsed to a single line until opened
 
 Run:  ./run          (or: uv run --with 'streamlit>=1.42' streamlit run app.py)
 """
@@ -28,27 +27,30 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
+import page
 import switcher
-from variants import v1_slate, v2_fog, v3_ash
+from variants import p1_swatches, p2_list, p3_drawer
 
-VARIANTS = {"1": v1_slate, "2": v2_fog, "3": v3_ash}
+VARIANTS = {"1": p1_swatches, "2": p2_list, "3": p3_drawer}
 
 st.set_page_config(page_title="Portfolio prototype", layout="wide",
                    initial_sidebar_state="expanded")
 
 # Strip Streamlit chrome — it is not part of any design being evaluated.
 #
-# CAREFUL. Two traps here, both hit during this prototype:
+# CAREFUL. Three traps here, all hit during this prototype:
 #
 #  1. Do NOT hide header[data-testid="stHeader"], and do NOT hide
 #     [data-testid="stToolbar"]. The control that re-opens a collapsed sidebar
 #     (stExpandSidebarButton) is rendered INSIDE that toolbar, inside that
 #     header. Hiding either one strands the sidebar shut with no way back.
-#     Hide the individual toolbar children instead.
 #  2. Streamlit persists the collapsed flag in localStorage under
 #     "stSidebarCollapsed-<base>", and that read beats initial_sidebar_state —
 #     so a sidebar collapsed once stays collapsed on every later reload. CSS
 #     cannot fix that; proto_boot.html clears the flag on load.
+#  3. Material icons are ligatures. Forcing font-family on a broad selector like
+#     `.stApp span` overrides the icon font and the glyph renders as literal
+#     text. The rule below re-asserts it at higher specificity.
 st.markdown("""
 <style>
   header[data-testid="stHeader"] { background: transparent !important; }
@@ -59,17 +61,12 @@ st.markdown("""
   [data-testid="stAppDeployButton"], [data-testid="stAppCreatorAvatar"],
   footer { display: none !important; }
 
-  /* Keep both sidebar controls reachable no matter what else is hidden. */
   [data-testid="stExpandSidebarButton"],
   [data-testid="stSidebarCollapseButton"] {
     display: inline-flex !important; visibility: visible !important;
     opacity: 1 !important; pointer-events: auto !important;
   }
 
-  /* Material icon glyphs are ligatures. A variant that forces font-family on a
-     broad selector like `.stApp span` overrides the icon font and the ligature
-     renders as literal text ("keyboard_double_arrow_left"). Higher specificity
-     than `.stApp span`, so it wins regardless of injection order. */
   .stApp [data-testid="stIconMaterial"], [data-testid="stIconMaterial"] {
     font-family: 'Material Symbols Rounded' !important;
     font-weight: 400 !important; letter-spacing: normal !important;
@@ -82,5 +79,5 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 active = switcher.current(VARIANTS)
-VARIANTS[active].render()
+page.render(VARIANTS[active].panel)
 switcher.render({k: m.NAME for k, m in VARIANTS.items()}, active)

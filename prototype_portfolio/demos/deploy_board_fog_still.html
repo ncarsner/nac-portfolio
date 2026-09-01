@@ -1,0 +1,67 @@
+<!doctype html><meta charset='utf-8'>
+
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+         background:#272e36; color:#e8ecf1; }
+  .wrap { border:1px solid #454e5a; border-radius:10px; overflow:hidden; }
+  .bar { display:flex; align-items:center; gap:8px; padding:8px 12px;
+         background:#303842; border-bottom:1px solid #454e5a; font-size:11px;
+         letter-spacing:.08em; text-transform:uppercase; color:#94a0ad; }
+  .dot { width:9px; height:9px; border-radius:50%; background:#6cc26c; }
+  .body { padding:14px; }
+  input, textarea { width:100%; background:#272e36; color:#e8ecf1;
+    border:1px solid #454e5a; border-radius:6px; padding:8px 10px;
+    font: inherit; outline:none; }
+  input:focus, textarea:focus { border-color:#8cc6ff; }
+  label { display:block; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+          color:#94a0ad; margin:10px 0 5px; }
+  mark { background:#8cc6ff2e; color:#e8ecf1; border-radius:3px;
+         box-shadow:0 0 0 1px #8cc6ff88; }
+</style>
+
+<div class="wrap">
+  <div class="bar"><span class="dot"></span> deploy board &middot; streaming</div>
+  <div class="body">
+    <div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:7px"></div>
+    <div style="margin-top:12px;display:flex;gap:16px;color:#94a0ad;font-size:11px">
+      <span><b id="ok" style="color:#6cc26c">0</b> healthy</span>
+      <span><b id="deg" style="color:#dbb04a">0</b> degraded</span>
+      <span><b id="bad" style="color:#ec6d63">0</b> failing</span>
+      <span style="margin-left:auto">refreshed <b id="age">0</b>s ago</span>
+    </div>
+  </div>
+</div>
+<script>
+  const names = ['auth','billing','cart','checkout','search','inventory','email','pricing',
+    'ledger','webhook','media','ingest','router','sessions','tax','shipping','fraud','notify'];
+  const grid = document.getElementById('grid');
+  const cells = names.map(n => {
+    const d = document.createElement('div');
+    d.style.cssText = 'border:1px solid #454e5a;border-radius:7px;padding:8px 9px;background:#222831';
+    d.innerHTML = '<div style="color:#e8ecf1;font-size:12px">'+n+'</div>' +
+      '<div class="s" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase"></div>' +
+      '<div class="l" style="color:#94a0ad;font-size:10px;margin-top:3px"></div>';
+    grid.appendChild(d); return d;
+  });
+  let t = 0;
+  function tick() {
+    let ok=0, deg=0, bad=0;
+    cells.forEach((d,i) => {
+      const r = Math.sin(t/7 + i*1.7) * 0.5 + 0.5;
+      const state = r > 0.92 ? 'failing' : r > 0.78 ? 'degraded' : 'healthy';
+      const col = state==='healthy' ? '#6cc26c' : state==='degraded' ? '#dbb04a' : '#ec6d63';
+      state==='healthy' ? ok++ : state==='degraded' ? deg++ : bad++;
+      const s = d.querySelector('.s'); s.textContent = state; s.style.color = col;
+      d.style.borderColor = state==='healthy' ? '#454e5a' : col + '66';
+      d.querySelector('.l').textContent = 'p95 ' + Math.round(60 + r*340) + 'ms';
+    });
+    document.getElementById('ok').textContent = ok;
+    document.getElementById('deg').textContent = deg;
+    document.getElementById('bad').textContent = bad;
+    document.getElementById('age').textContent = t % 5;
+    t++;
+  }
+  tick(); 
+</script>

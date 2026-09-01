@@ -145,7 +145,7 @@ DEPLOY_BOARD = r"""
     document.getElementById('age').textContent = t % 5;
     t++;
   }
-  tick(); setInterval(tick, 1000);
+  tick(); __MOTION__
 </script>
 """
 
@@ -157,6 +157,12 @@ def alpha(hex_colour, aa):
 
 
 def build():
+    """Two axes: page tone, and whether motion is allowed.
+
+    Reduced motion has to reach INSIDE the iframe — a demo that keeps animating
+    behind an accessibility setting the viewer switched on is just ignoring them.
+    An iframe is a separate document that page CSS cannot touch, so the still
+    version is a separate build."""
     here = pathlib.Path(__file__).parent
     for tone, (scheme, bg, fg, border, barbg, muted, inset, accent, ok, warn, bad) in PALETTES.items():
         repl = {
@@ -167,12 +173,13 @@ def build():
             "__MARKFG__": fg,
         }
         for name, tpl in TEMPLATES.items():
-            out = tpl
-            for k, v in repl.items():
-                out = out.replace(k, v)
-            path = here / f"{name}_{tone}.html"
-            path.write_text("<!doctype html><meta charset='utf-8'>\n" + out)
-            print("wrote", path.name)
+            for suffix, motion in (("", "setInterval(tick, 1000);"), ("_still", "")):
+                out = tpl.replace("__MOTION__", motion)
+                for k, v in repl.items():
+                    out = out.replace(k, v)
+                path = here / f"{name}_{tone}{suffix}.html"
+                path.write_text("<!doctype html><meta charset='utf-8'>\n" + out)
+                print("wrote", path.name)
 
 
 if __name__ == "__main__":

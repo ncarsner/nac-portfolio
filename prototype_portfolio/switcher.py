@@ -20,11 +20,11 @@ _CSS = """
   padding: 6px 8px; box-shadow: 0 10px 34px rgba(0,0,0,.5);
 }
 .st-key-proto_switcher [data-testid="stHorizontalBlock"] { gap: 2px; align-items: center; }
-.st-key-proto_switcher .stButton > button {
+.st-key-proto_switcher .stButton button {
   background: transparent; color: #d6dbe1; border: none; border-radius: 999px;
   padding: 2px 12px; font-size: 17px; line-height: 1.4; min-height: 0;
 }
-.st-key-proto_switcher .stButton > button:hover { background: #262c33; color: #fff; }
+.st-key-proto_switcher .stButton button:hover { background: #262c33; color: #fff; }
 .st-key-proto_switcher p {
   color: #d6dbe1 !important; font-size: 12px !important; margin: 0 !important;
   white-space: nowrap; letter-spacing: .04em;
