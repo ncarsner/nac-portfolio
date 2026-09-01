@@ -1,22 +1,34 @@
 # PROTOTYPE — portfolio UI variants
 
 **Throwaway code.** No tests, no error handling, no abstractions worth keeping.
-Written to answer one question, then to be deleted.
+Written to answer a question, then to be deleted.
 
-## The question
+## Round 1 — settled
 
-> What should a software engineer's personal portfolio look like, when the site
-> has to host **already-built things** — apps, packages, sites — alongside static
-> text and images?
+> What should the site's **structure** be?
 
-Three variants of the *whole site*, switchable via `?variant=` and the floating
-bottom bar. They disagree about structure, not colour.
+**Answer: the "Workbench" layout.** A sidebar cataloguing every artifact; a main
+pane that runs the selected one full size. Prose is the fallback for things that
+cannot run, not the default presentation. Reasoning and the two rejected
+structures are in [`../DECISION.md`](../DECISION.md); the losing variants are on
+this branch at commit `1c8761e`, recoverable with:
+
+```
+git show 1c8761e:prototype_portfolio/variants/variant_a.py
+```
+
+## Round 2 — open
+
+> The layout is right. What should it **look like**?
+
+Three treatments of the identical skeleton. They differ in typography, density,
+colour, and how the title block and metrics are handled — nothing else.
 
 | Key | Name | The bet it makes |
 |-----|------|------------------|
-| `A` | **Index** — dense text-first listing | Your reader is a peer who already knows what they want. One column, no hero, whole inventory on one screen. Demos are one click deep, never in the way. |
-| `B` | **Workbench** — two-pane live artifact viewer | The portfolio *is* an app. Sidebar catalogs everything; the main pane runs the selected artifact full size. Prose is the fallback, not the default. |
-| `C` | **Dispatch** — narrative long-scroll | What distinguishes one engineer from another is reasoning. The page is an essay, newest first, with artifacts inline as evidence — always visible, never behind a click. |
+| `1` | **Instrument** — dark, dense, monospace | This is a control surface, not a brochure. Hairline rules, no decoration, colour only where it carries signal. Density itself is the credential. |
+| `2` | **Editorial** — light, airy, serif display | The opposite bet. Large serif type, comfortable measures, whitespace doing the structural work instead of borders. Space, not density, signals seniority. |
+| `3` | **Console** — high contrast, hard edges | Be memorable rather than tasteful. Thick rules, no rounding, two extreme type sizes, one loud accent. A portfolio's real failure mode is being forgotten. |
 
 ## Run
 
@@ -27,25 +39,26 @@ bottom bar. They disagree about structure, not colour.
 One command. `uv` pulls Streamlit into a throwaway env — nothing is installed
 into your system Python and there is no venv to clean up.
 
-Then: <http://localhost:8501/?variant=A> — or use the bottom bar (`←` / `→` also
-cycle, when the browser lets the iframe reach the parent document).
-
-Set `PROTOTYPE_SWITCHER=0` to hide the bar.
+Then <http://localhost:8501/?variant=1>, or use the bottom bar (`←` / `→` also
+cycle, when the browser lets the iframe reach the parent document). Set
+`PROTOTYPE_SWITCHER=0` to hide the bar.
 
 ## Layout
 
 ```
 app.py              entry — chrome reset, variant dispatch
-switcher.py         floating bottom bar (shared by all variants)
+switcher.py         floating bottom bar
 switcher_keys.html  arrow-key handler, iframed at height 1
 content.py          FAKE placeholder data — all in memory, nothing persisted
 embeds.py           iframes the live demos + SVG screenshot placeholders
 demos/              real, working, dependency-free HTML apps
-variants/           variant_a.py / variant_b.py / variant_c.py
+variants/shell.py   the settled skeleton — running order, shared by all three
+variants/v1..v3     one visual language each: CSS + its own block renderers
 ```
 
-Each variant owns its **entire** CSS and layout. Nothing is shared but the data
-and the demo files — deliberately, so any variant can throw out the whole shape.
+`shell.py` exists because round 1 is decided: holding the running order fixed is
+what makes round 2 an honest comparison. Everything visual still belongs to the
+variant, so any of them can still throw out the entire look.
 
 ## Caveats, stated plainly
 
@@ -55,17 +68,13 @@ and the demo files — deliberately, so any variant can throw out the whole shap
   apps, iframed. In the real site those iframes point at deployed apps instead —
   the mechanic is identical, which is the part being tested.
 - **Screenshots are SVG placeholders**, labelled as such.
-- **Nothing mutates anything.** Read-only by design.
-- **Streamlit is on trial here too.** These variants push it past its comfort
-  zone (fixed positioning, custom typography, chrome removal) via CSS that keys
-  off internal class names like `.st-key-*`. That works today and is exactly the
-  kind of thing that breaks on upgrade — worth weighing when you pick.
+- **Variants 2 and 3 pull webfonts from Google Fonts.** Offline they fall back to
+  system serif / sans and will look noticeably flatter.
+- **Streamlit is still on trial.** All three lean on CSS keyed to internal class
+  names (`.st-key-*`, `[data-testid="stSidebar"]`). That works today and is
+  exactly the kind of thing that breaks on upgrade.
 
 ## Reading the result
 
-The useful answer is usually not "B". It is **"the sidebar from B with the prose
-from C"** — that combination is the design you actually want. Say it that way.
-
-Once a variant wins: fold it into real code (rewritten properly — this was
-written under prototype constraints), and move this whole directory onto a
-throwaway branch rather than into main.
+The useful answer is usually not "2". It is **"Editorial's type at Instrument's
+density"** — say it that way and that is the design.

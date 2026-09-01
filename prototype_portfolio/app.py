@@ -1,15 +1,20 @@
 """
-PROTOTYPE — portfolio UI variants.  THROWAWAY CODE. Do not promote as-is.
+PROTOTYPE — portfolio UI variants, round 2.  THROWAWAY CODE. Do not promote as-is.
 
-Question this answers: what should a software engineer's personal portfolio look
-like, when the site has to host already-built things (apps, packages, sites)
-alongside static text and images?
+Round 1 asked what the site's STRUCTURE should be, and answered it: variant B,
+"Workbench" — a sidebar cataloguing every artifact, a main pane that runs the
+selected one full size. See DECISION.md. That is settled and no longer varies.
 
-Three variants of the whole site, switchable via ?variant= and the floating
-bottom bar:
-  A — Index      dense text-first listing, demos one click deep
-  B — Workbench  two-pane app shell, the selected artifact runs full size
-  C — Dispatch   long-form narrative scroll, artifacts inline as evidence
+Round 2 asks the remaining question:
+
+    The layout is right. What should it LOOK like?
+
+Three treatments of the identical skeleton (variants/shell.py holds the running
+order, so the comparison is honest). Switch with ?variant= or the bottom bar:
+
+  1 — Instrument  dark, dense, monospace; colour only where it carries signal
+  2 — Editorial   light, warm, serif display; whitespace instead of borders
+  3 — Console     high contrast, hard edges, one loud accent
 
 Run:  ./run          (or: uv run --with 'streamlit>=1.42' streamlit run app.py)
 """
@@ -20,9 +25,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 import switcher
-from variants import variant_a, variant_b, variant_c
+from variants import v1_instrument, v2_editorial, v3_console
 
-VARIANTS = {"A": variant_a, "B": variant_b, "C": variant_c}
+VARIANTS = {"1": v1_instrument, "2": v2_editorial, "3": v3_console}
 
 st.set_page_config(page_title="Portfolio prototype", layout="wide",
                    initial_sidebar_state="expanded")
@@ -32,8 +37,7 @@ st.markdown("""
 <style>
   header[data-testid="stHeader"], #MainMenu, footer { display:none !important; }
   [data-testid="stAppViewBlockContainer"], .block-container {
-    padding-top: 2.6rem !important; padding-bottom: 1rem !important; }
-  [data-testid="stExpander"] details { border-radius:8px; }
+    padding-top: 2.4rem !important; padding-bottom: 1rem !important; }
 </style>
 """, unsafe_allow_html=True)
 
