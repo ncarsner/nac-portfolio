@@ -6,18 +6,14 @@ Settled in earlier rounds (see ../DECISION.md and the git log):
   round 2  LANGUAGE  Instrument — dense, monospace, hairline rules
   round 4  TONE      Slate, now the default
 
-Round 5 turns the tone from a prototype variant into a real control: the viewer
-picks it, alongside accessibility settings, from a panel in the sidebar's lower
-left under Contact. theme.py holds the palettes and settings; page.py renders
-the settled page and takes the panel as a callable.
+Round 5 turned the tone into a real control and chose how it presents itself:
+a "Drawer" in the sidebar's lower left under Contact, collapsed to one line until
+opened. Nothing is switched any more, so the prototype's variant bar is gone.
 
-So the only thing still under evaluation is the panel itself:
-
-    Where do the options live, and how loud should they be?
-
-  1 — Swatches  colour chips you pick by looking, plus toggle rows
-  2 — List      one row idiom all the way down, an icon per option
-  3 — Drawer    collapsed to a single line until opened
+  theme.py   palettes + accessibility settings + the whole stylesheet
+  page.py    the settled page
+  panel.py   the options drawer
+  a11y.py    accessible names for the icon-only controls
 
 Run:  ./run          (or: uv run --with 'streamlit>=1.42' streamlit run app.py)
 """
@@ -28,10 +24,6 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 import page
-import switcher
-from variants import p1_swatches, p2_list, p3_drawer
-
-VARIANTS = {"1": p1_swatches, "2": p2_list, "3": p3_drawer}
 
 st.set_page_config(page_title="Portfolio prototype", layout="wide",
                    initial_sidebar_state="expanded")
@@ -78,6 +70,4 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-active = switcher.current(VARIANTS)
-page.render(VARIANTS[active].panel)
-switcher.render({k: m.NAME for k, m in VARIANTS.items()}, active)
+page.render()

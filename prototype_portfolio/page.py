@@ -6,14 +6,16 @@ Rounds 1-4 fixed all of this, so it no longer varies:
   language Instrument — dense, monospace, hairline rules, no decoration
   tone     Slate by default, now switchable by the viewer
 
-The only thing still under evaluation is how the OPTIONS PANEL presents itself,
-so render() takes a `panel` callable and the variants supply just that.
+Round 5 chose the options panel too — "Drawer", in panel.py — so nothing is
+switched any more and the prototype's variant bar is gone.
 """
 import html as _html
+from pathlib import Path
 
 import streamlit as st
 from content import SITE, ARTIFACTS, KIND_LABEL, get
 import embeds
+import panel
 import theme
 
 ORDER = ["app", "package", "site", "writing"]
@@ -49,8 +51,9 @@ def _stage(a, s):
     elif a.get("install"):
         st.markdown(pre(a["install"], "cmd") + pre(a["sample"]), unsafe_allow_html=True)
     else:
-        tint = {"slate": "#24405f", "fog": "#3a5372", "ash": "#31506f"}[s["tone"]]
-        st.image(embeds.placeholder(a["name"], a["one_liner"][:64], a=tint), width="stretch")
+        # tint lives in the palette so it cannot drift out of sync with the tones
+        st.image(embeds.placeholder(a["name"], a["one_liner"][:64],
+                                    a=theme.PALETTES[s["tone"]]["tint"]), width="stretch")
 
 
 def _facts(a):
@@ -61,8 +64,7 @@ def _facts(a):
     return f
 
 
-def render(panel):
-    """panel: callable taking the settings dict, drawn in the sidebar's lower left."""
+def render():
     s = theme.state()
     st.markdown(theme.css(s), unsafe_allow_html=True)
     a = selection()
@@ -74,7 +76,7 @@ def render(panel):
         st.markdown('<div class="grp">Contact</div>', unsafe_allow_html=True)
         st.markdown(" · ".join(f"[{k.lower()}]({u})" for k, u in SITE["links"].items()),
                     unsafe_allow_html=True)
-        panel(s)   # <- the part still being prototyped
+        panel.render(s)
 
     st.markdown('<div class="wrap">', unsafe_allow_html=True)
     st.markdown(
@@ -107,3 +109,7 @@ def render(panel):
             f'<div class="kv"><span class="k">{k}</span><span class="v">{v}</span></div>'
             for k, v in _facts(a)), unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
+
+    # Sidebar repair + the accessible-name pass. Must come after everything it
+    # describes, and it re-applies on rerun via a MutationObserver.
+    st.iframe(Path(__file__).parent / "proto_boot.html", height=1)

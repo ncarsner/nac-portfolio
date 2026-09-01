@@ -15,9 +15,9 @@ import pathlib
 
 PALETTES = {
     # tone     scheme  bg         fg         border     barbg      muted      inset      accent     ok         warn       bad
-    "slate": ("dark",  "#191e24", "#dfe4ea", "#333b45", "#212831", "#7d8894", "#14181d", "#6cb6ff", "#57ab5a", "#d4a13a", "#e5534b"),
-    "fog":   ("dark",  "#272e36", "#e8ecf1", "#454e5a", "#303842", "#94a0ad", "#222831", "#8cc6ff", "#6cc26c", "#dbb04a", "#ec6d63"),
-    "ash":   ("light", "#eaedf0", "#1a1f26", "#bcc4cc", "#dfe3e7", "#6b7681", "#f4f6f8", "#0d4f9c", "#26703a", "#8a6100", "#b3261e"),
+    "dark":  ("dark",  "#191e24", "#dfe4ea", "#333b45", "#212831", "#7d8894", "#14181d", "#6cb6ff", "#57ab5a", "#d4a13a", "#e5534b"),
+    "mid":   ("dark",  "#272e36", "#e8ecf1", "#454e5a", "#303842", "#94a0ad", "#222831", "#8cc6ff", "#6cc26c", "#dbb04a", "#ec6d63"),
+    "light": ("light", "#eaedf0", "#1a1f26", "#bcc4cc", "#dfe3e7", "#6b7681", "#f4f6f8", "#0d4f9c", "#26703a", "#8a6100", "#b3261e"),
 }
 
 REGEX_LAB = r"""

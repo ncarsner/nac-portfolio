@@ -48,10 +48,10 @@ EMBEDS = {
     "deploy_board": ("deploy_board", 400),
 }
 
-TONES = ("slate", "fog", "ash")
+TONES = ("dark", "mid", "light")
 
 
-def render(st, key, height=None, tone="slate", motion=True):
+def render(st, key, height=None, tone="dark", motion=True):
     """Render a live demo in an iframe. Returns True if something was drawn.
 
     `motion=False` picks the still build: an iframe is a separate document, so
@@ -61,7 +61,7 @@ def render(st, key, height=None, tone="slate", motion=True):
         return False
     stem, h = EMBEDS[key]
     if tone not in TONES:
-        tone = "slate"
+        tone = "dark"
     suffix = "" if motion else "_still"
     st.iframe(DEMOS_DIR / f"{stem}_{tone}{suffix}.html", height=height or h)
     return True

@@ -34,25 +34,29 @@ Read "but lighter" as near-white. Verdict: **too light.** Kept in history at
 
 **Slate** `#1c2128` — the minimal lift off near-black. Now the default.
 
-## Round 5 — open
+## Round 5 — settled
 
-> Where do the options live, and how loud should they be?
+**Drawer.** Collapsed to a single "Appearance" line with a summary of what is
+active, so the sidebar belongs to the work until someone wants the controls. The
+rejected panels (Swatches, List) are in history at `4fb9bc0`.
 
-The tone is no longer a prototype variant. Fog and Ash were kept and the choice
-handed to the viewer, together with accessibility settings, from a panel in the
-sidebar's lower left under Contact. So the only thing still being compared is how
-that panel presents itself.
+## Round 6 — refinements
 
-| Key | Name | The bet it makes |
-|-----|------|------------------|
-| `1` | **Swatches** | Colour chips painted with the ground they select, picked by looking rather than reading, plus labelled toggle rows. |
-| `2` | **List** | One row idiom all the way down the sidebar, an icon per option. Nothing new to learn, and it scales if more options land. |
-| `3` | **Drawer** | Collapsed to a single "Appearance" line with a summary until opened. The sidebar belongs to the work, not to its own controls. |
+Nothing is being compared any more, so the prototype's variant bar is gone.
 
-### Settings, in all three
+- **Three modes, icons only.** A moon, a half-disc and a sun, joined into one
+  segmented control. Dark / mid / light is legible without reading anything and
+  the colour names were arbitrary; the names survive only as accessible names.
+- **Word-style text sizing.** Minus, current size, plus, over five fixed steps
+  (90 / 100 / 115 / 130 / 145%). The ends disable rather than wrap — wrapping
+  from largest back to smallest would be a nasty surprise — and five steps is
+  enough range to matter while keeping either end two clicks away.
+- **Screen-reader text throughout.** See below.
 
-- **Ground tone** — Slate (default), Fog, Ash
-- **Text size** — Normal, Large, Larger
+### Settings
+
+- **Mode** — dark (default), mid, light
+- **Text size** — five steps, 90% to 145%
 - **High contrast** — stronger text and borders
 - **Readable font** — wider sans instead of monospace
 - **Underline links** — do not signal links by colour alone
@@ -62,6 +66,36 @@ State lives in `st.session_state`: in memory, never persisted. Reduce motion is
 built into the demos rather than applied as page CSS — an iframe is a separate
 document, so the still version is a separate build.
 
+## Accessibility notes
+
+Streamlit derives a button's accessible name from its visible label, so an
+icon-only button has **no accessible name at all** — a screen reader announces
+"button" and nothing else. There is no Python-side aria-* API. So `a11y.py`
+publishes a label map into a hidden element and `proto_boot.html` copies it onto
+the real controls, re-applying after every rerun via a `MutationObserver`.
+
+What that buys:
+
+- Every icon-only control has an `aria-label` that includes its current value
+  ("Increase text size. Currently 100%").
+- The three modes are a `radiogroup` with `aria-checked`, so they announce as one
+  choice rather than three unrelated switches.
+- Toggles carry `aria-pressed`; the drawer carries `aria-expanded`.
+- Icon spans are `aria-hidden`, so the ligature name is never announced.
+- Nav items get a real description instead of the decorative `●`/`○` bullet, and
+  the selected one carries `aria-current`.
+- The live demo iframe gets a title; the helper iframe is `aria-hidden` and
+  removed from the tab order.
+- A visually hidden `role="status"` region announces the settings summary
+  whenever anything changes.
+
+It is all additive: if the script never runs the page still works, it is just
+less well described.
+
+**Not done:** this has been verified by inspecting the accessibility tree in the
+DOM, not by driving an actual screen reader. Keyboard focus order and contrast
+ratios have not been audited either. Both are worth doing before this ships.
+
 ## Run
 
 ```
@@ -69,66 +103,57 @@ document, so the still version is a separate build.
 ```
 
 One command. `uv` pulls Streamlit into a throwaway env — nothing is installed
-into your system Python and there is no venv to clean up.
-
-Then <http://localhost:8501/?variant=1>, or use the bottom bar (`←` / `→` also
-cycle). Set `PROTOTYPE_SWITCHER=0` to hide the bar.
+into your system Python and there is no venv to clean up. Then
+<http://localhost:8501>.
 
 ## Layout
 
 ```
-app.py              entry — chrome reset, panel dispatch
-theme.py            palettes + accessibility settings + the whole stylesheet
-page.py             the settled page; takes the options panel as a callable
-switcher.py         floating bottom bar (prototype only)
-proto_boot.html     sidebar repair + arrow keys, iframed at height 1
+app.py              entry — chrome reset
+theme.py            palettes + settings + the whole stylesheet, derived per render
+page.py             the settled page
+panel.py            the options drawer
+a11y.py             accessible names, published for proto_boot.html to apply
+proto_boot.html     sidebar repair + the accessible-name pass, iframed at height 1
 content.py          FAKE placeholder data — all in memory, nothing persisted
 embeds.py           iframes the live demos + SVG screenshot placeholders
-demos/build.py      builds each demo per tone, animated and still
-variants/p1..p3     one options-panel presentation each
+demos/build.py      builds each demo per mode, animated and still
 ```
 
 ## Streamlit chrome traps, recorded so they are not repeated
 
-Five rounds, five traps. Each was found in a real browser with Playwright, not by
-reasoning — three of them survived a fix that was written from a guess.
+Seven now, across six rounds. Each was found in a real browser with Playwright,
+not by reasoning — several survived a fix written from a guess.
 
 1. **Never hide `header[data-testid="stHeader"]` or `[data-testid="stToolbar"]`.**
    `stExpandSidebarButton` — the only way to reopen a collapsed sidebar — lives
-   inside them. Hide the individual toolbar children instead.
+   inside them.
 2. **The sidebar-collapsed flag persists in `localStorage`** as
-   `stSidebarCollapsed-<base>`, and that read **beats** `initial_sidebar_state`.
-   A sidebar collapsed once stays collapsed on every later reload. No CSS can fix
-   it; `proto_boot.html` clears the flag on load.
-3. **Material icons are ligatures.** A broad `font-family` override (e.g. on
-   `.stApp span`) renders them as literal text. `app.py` re-asserts the icon font
-   at higher specificity.
-4. **Streamlit's markdown CSS outranks a bare class selector**, so `.pr { font-size }`
-   silently did nothing and the prose rendered at 16px instead of 12.5px. Every
-   size that matters now says `!important`.
+   `stSidebarCollapsed-<base>` and **beats** `initial_sidebar_state`, so a
+   sidebar collapsed once stays collapsed forever. No CSS can fix it.
+3. **Material icons are ligatures.** A broad `font-family` override renders them
+   as literal text.
+4. **Streamlit's markdown CSS outranks a bare class selector**, so font sizes
+   silently did nothing. Every size that matters says `!important`.
 5. **A button with `help=` is wrapped in tooltip spans**, so `.stButton > button`
-   skips it. Use `.stButton button`. This left the entire options panel unstyled
-   while the nav beside it looked correct.
-6. **Streamlit's markdown wrapper does not grow with the inner div's padding.**
-   Headers overflow their own element container; the default 1rem block gap was
-   hiding it, and tightening the gap exposed it. Those containers now carry an
-   explicit `min-height`.
+   skips it. Use `.stButton button`.
+6. **The markdown wrapper does not grow with the inner div's padding**, so
+   headers overflow their element container. Those containers carry a `min-height`.
+7. **A button wrapper is shrink-to-fit**, so `width:100%` on the button resolves
+   against the icon's own width. Widen every box in the chain.
 
 ## Caveats, stated plainly
 
 - **All content is invented.** "Sam Rivera" and every project, metric and link is
-  placeholder, present only so the layouts are judged at realistic density.
+  placeholder, present only so the layout is judged at realistic density.
 - **The demos are real but local.** Working zero-dependency apps, iframed. In the
   real site those iframes point at deployed apps instead.
 - **Screenshots are SVG placeholders**, labelled as such.
-- **Settings do not persist.** Reload and you are back to Slate. Persisting them
-  is a real decision (cookie? localStorage? account?) and a prototype should not
-  quietly assume one.
-- **Streamlit is still on trial.** Six traps in five rounds, all the same shape:
+- **Settings do not persist.** Reload and you are back to dark at 100%.
+  Persisting them is a real decision (cookie? localStorage? account?) and a
+  prototype should not quietly assume one.
+- **Streamlit is still on trial.** Seven traps in six rounds, all the same shape:
   depending on internal class names and test ids with no compatibility guarantee.
-  Weigh that before promoting any of this.
-
-## Reading the result
-
-Pick a panel, or say what to graft — **"Drawer, but the swatches from 1 inside
-it"** is directly actionable.
+  The accessibility layer is the sharpest case — it exists only because there is
+  no supported way to set an aria attribute, and it would break the day Streamlit
+  changes its DOM.

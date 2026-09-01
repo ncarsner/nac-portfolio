@@ -8,7 +8,11 @@
 //      initial_sidebar_state — so once collapsed it stays collapsed on every
 //      reload, forever. We clear the flag and click the expand control once per
 //      page load. Collapsing by hand still works for the rest of the session.
-//   2. Bind the left/right arrow keys to the variant switcher.
+//
+//   2. Apply the accessible names a11y.py publishes. Streamlit derives a
+//      button's accessible name from its visible label, so an icon-only button
+//      has none; there is no Python-side aria-* API. We copy the published map
+//      onto the real controls and re-apply after every rerun.
 //
 // Both are best-effort: if the browser blocks parent access, nothing breaks.
 (function () {
@@ -26,32 +30,77 @@
         }
       }
     } catch (e) { /* storage blocked — fall through to the click */ }
-
-    // The expand control only exists while the sidebar is collapsed.
     var tries = 0;
-    var open = function () {
+    (function open() {
       var btn = doc.querySelector('[data-testid="stExpandSidebarButton"]');
-      var wide = (win.innerWidth || 1200) > 768;
-      if (btn && wide) { btn.click(); return; }
+      if (btn && (win.innerWidth || 1200) > 768) { btn.click(); return; }
       if (++tries < 20) win.setTimeout(open, 100);
-    };
-    open();
+    })();
   }
 
-  // ---- 2. arrow keys -----------------------------------------------------
-  if (doc.__protoKeys) return;
-  doc.__protoKeys = true;
-  doc.addEventListener('keydown', function (e) {
-    if (e.metaKey || e.ctrlKey || e.altKey) return;
-    var t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-    var bar = doc.querySelector('.st-key-proto_switcher');
-    if (!bar) return;
-    var btns = bar.querySelectorAll('button');
-    if (btns.length < 2) return;
-    e.preventDefault();
-    (e.key === 'ArrowLeft' ? btns[0] : btns[btns.length - 1]).click();
-  });
+  // ---- 2. accessible names, re-applied on every rerun --------------------
+  function apply() {
+    var holder = doc.getElementById('proto-a11y-data');
+    if (!holder) return;
+    var map;
+    try { map = JSON.parse(holder.dataset.a11y); } catch (e) { return; }
+
+    var labels = map.labels || {}, pressed = map.pressed || {},
+        expanded = map.expanded || {}, group = map.radiogroup || [],
+        current = map.current || {};
+
+    Object.keys(labels).forEach(function (key) {
+      var wrap = doc.querySelector('.st-key-' + key);
+      if (!wrap) return;
+      var btn = wrap.querySelector('button');
+      if (!btn) return;
+      btn.setAttribute('aria-label', labels[key]);
+      // A control whose icon is its only content must not leak the ligature
+      // name to assistive tech as well.
+      var ic = btn.querySelector('[data-testid="stIconMaterial"]');
+      if (ic) ic.setAttribute('aria-hidden', 'true');
+
+      if (group.indexOf(key) !== -1) {
+        btn.setAttribute('role', 'radio');
+        btn.setAttribute('aria-checked', String(!!pressed[key]));
+        btn.removeAttribute('aria-pressed');
+      } else if (key in pressed) {
+        btn.setAttribute('aria-pressed', String(!!pressed[key]));
+      }
+      if (key in expanded) btn.setAttribute('aria-expanded', String(!!expanded[key]));
+      if (current[key]) btn.setAttribute('aria-current', 'true');
+      else if (key.indexOf('nav_') === 0) btn.removeAttribute('aria-current');
+    });
+
+    // Group the three modes so they announce as one choice, not three switches.
+    var seg = doc.querySelector('.st-key-mode_seg [data-testid="stHorizontalBlock"]');
+    if (seg) { seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', 'Colour mode'); }
+
+    doc.querySelectorAll('iframe').forEach(function (f) {
+      var r = f.getBoundingClientRect();
+      if (r.height <= 2) {                       // this helper itself
+        f.setAttribute('aria-hidden', 'true'); f.setAttribute('tabindex', '-1');
+        if (!f.title) f.title = 'Prototype helper';
+      } else if (map.demoTitle && (!f.title || f.title === 'st.iframe')) {
+        // Streamlit stamps a generic "st.iframe" title; that is not a description.
+        f.title = map.demoTitle;
+      }
+    });
+
+    doc.querySelectorAll('img').forEach(function (im) {
+      if (!im.alt && map.imageAlt) im.alt = map.imageAlt;
+    });
+  }
+
+  if (!doc.__protoA11y) {
+    doc.__protoA11y = true;
+    var queued = false;
+    new win.MutationObserver(function () {
+      if (queued) return;
+      queued = true;
+      win.requestAnimationFrame(function () { queued = false; apply(); });
+    }).observe(doc.body, { childList: true, subtree: true });
+  }
+  apply();
 })();
 </script>
