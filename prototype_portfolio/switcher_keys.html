@@ -1,0 +1,25 @@
+<!doctype html><meta charset="utf-8">
+<script>
+// PROTOTYPE — ← / → cycle variants by clicking the real switcher buttons in the
+// parent document. Best-effort: if the browser blocks parent access the arrows
+// simply do nothing and the buttons still work.
+(function () {
+  try {
+    var doc = window.parent.document;
+    if (doc.__protoKeys) return;
+    doc.__protoKeys = true;
+    doc.addEventListener('keydown', function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      var bar = doc.querySelector('.st-key-proto_switcher');
+      if (!bar) return;
+      var btns = bar.querySelectorAll('button');
+      if (btns.length < 2) return;
+      e.preventDefault();
+      (e.key === 'ArrowLeft' ? btns[0] : btns[btns.length - 1]).click();
+    });
+  } catch (err) { /* cross-origin: arrow keys unavailable, buttons still work */ }
+})();
+</script>
