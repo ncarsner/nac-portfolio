@@ -1,68 +1,117 @@
 """
 PROTOTYPE — runtime theme + accessibility settings.
 
-Rounds 1-4 settled the layout (Workbench), the visual language (Instrument) and
-the ground tone (Slate). Those are no longer prototype variants; the tone is now
-a CHOICE THE VIEWER MAKES, so the palette moves from three hardcoded modules into
-one table applied at render time.
+The palette has two independent axes, so it is GENERATED rather than written out
+fifteen times:
 
-Everything lives in st.session_state — in memory, never persisted. Persistence is
-the thing a prototype checks, not something it depends on.
+  mode   how light the page is        dark / mid / light
+  base   which hue the neutrals and the accent are built from
+                                      blue / green / silver / gold / magenta
+
+Each mode is a ramp of (saturation, lightness) targets per token; each base
+supplies a hue and a saturation multiplier. Silver is simply a base whose
+multiplier is near zero. That keeps every combination internally consistent —
+picking a new base can never produce a page whose borders and text stop relating
+to its background.
+
+Everything lives in st.session_state — in memory, never persisted.
 """
+import colorsys
+
 import streamlit as st
 
-# --- ground tones ---------------------------------------------------------
-# Three modes, distinguished by icon alone in the UI. The names below are for
-# screen readers and the settings summary, never rendered as button text — the
-# icons carry the meaning, and the specific colour names were arbitrary anyway.
-PALETTES = {
-    "dark": dict(
-        label="Dark", icon="dark_mode", hint="Soft charcoal. The default.",
-        swatch="#1c2128", tint="#24405f", on_swatch="#dfe4ea",
-        tok=dict(bg="#1c2128", pan="#191e24", r="#333b45", r2="#262d35",
-                 fg="#dfe4ea", fg2="#adb7c2", m="#7d8894", m2="#68727d",
-                 a="#6cb6ff", ok="#57ab5a", hv="#232a32", sel="#1f2a38",
-                 selb="#2f4257", code="#171c22"),
-        hc=dict(fg="#ffffff", fg2="#e6ebf0", m="#b8c2cc", m2="#a4aeb9",
-                r="#5a6673", r2="#46505c", a="#9ecfff"),
-    ),
-    "mid": dict(
-        label="Mid", icon="brightness_medium", hint="Mid slate, softer contrast.",
-        swatch="#2b323b", tint="#3a5372", on_swatch="#e8ecf1",
-        tok=dict(bg="#2b323b", pan="#272e36", r="#454e5a", r2="#39414b",
-                 fg="#e8ecf1", fg2="#c2cad3", m="#94a0ad", m2="#7f8b98",
-                 a="#8cc6ff", ok="#6cc26c", hv="#333b45", sel="#33404f",
-                 selb="#465871", code="#242a32"),
-        hc=dict(fg="#ffffff", fg2="#eef2f6", m="#c0c9d2", m2="#adb6c0",
-                r="#6b7684", r2="#59636f", a="#b3daff"),
-    ),
-    "light": dict(
-        label="Light", icon="light_mode", hint="Grey paper. Light without glare.",
-        swatch="#dfe3e7", tint="#31506f", on_swatch="#1a1f26",
-        tok=dict(bg="#dfe3e7", pan="#d7dce1", r="#bcc4cc", r2="#ccd3d9",
-                 fg="#1a1f26", fg2="#3f4954", m="#6b7681", m2="#828d98",
-                 a="#0d4f9c", ok="#26703a", hv="#d2d8de", sel="#cbd6e4",
-                 selb="#a9bcd4", code="#d5dae0"),
-        hc=dict(fg="#000000", fg2="#1a2028", m="#3d474f", m2="#4d5760",
-                r="#8b96a1", r2="#a3adb6", a="#06316b"),
-    ),
+
+def _hex(h, s, l):
+    """h in degrees, s and l in percent."""
+    r, g, b = colorsys.hls_to_rgb((h % 360) / 360.0, max(0, min(100, l)) / 100.0,
+                                  max(0, min(100, s)) / 100.0)
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+# token -> (saturation, lightness) per mode. Order is the whole design in a table.
+MODE_SPEC = {
+    "dark": dict(bg=(14, 12), pan=(14, 10), r=(12, 24), r2=(12, 17),
+                 fg=(10, 90), fg2=(10, 73), m=(8, 55), m2=(8, 45),
+                 hv=(14, 16), sel=(28, 19), selb=(30, 32), code=(14, 9),
+                 a=(95, 70), tint=(50, 30)),
+    "mid":  dict(bg=(12, 20), pan=(12, 18), r=(11, 32), r2=(11, 25),
+                 fg=(12, 93), fg2=(11, 80), m=(9, 63), m2=(9, 54),
+                 hv=(12, 24), sel=(24, 26), selb=(28, 40), code=(12, 17),
+                 a=(95, 77), tint=(50, 36)),
+    "light": dict(bg=(12, 89), pan=(12, 85), r=(12, 72), r2=(12, 80),
+                  fg=(18, 11), fg2=(14, 27), m=(10, 45), m2=(10, 56),
+                  hv=(12, 84), sel=(30, 82), selb=(32, 66), code=(12, 85),
+                  a=(85, 32), tint=(50, 30)),
 }
 
-# Word-style stepped text sizing: a minus, the current size, a plus. Five steps
-# is enough range to matter and few enough that the ends are reachable in two
-# clicks — an unbounded zoom would just let someone break the layout.
-TEXT_STEPS = [0.90, 1.00, 1.15, 1.30, 1.45]
-TEXT_DEFAULT = 1                      # index into TEXT_STEPS
+# High contrast pushes text to the extremes and strengthens the rules.
+MODE_HC = {
+    "dark":  dict(fg=(0, 100), fg2=(6, 94), m=(6, 78), m2=(6, 70),
+                  r=(14, 42), r2=(14, 34), a=(100, 80)),
+    "mid":   dict(fg=(0, 100), fg2=(6, 95), m=(7, 80), m2=(7, 72),
+                  r=(14, 48), r2=(14, 40), a=(100, 84)),
+    "light": dict(fg=(0, 0), fg2=(10, 10), m=(10, 28), m2=(10, 34),
+                  r=(14, 48), r2=(14, 58), a=(95, 24)),
+}
+
+# Status green stays semantic, so it does not follow the base hue.
+MODE_OK = {"dark": "#57ab5a", "mid": "#6cc26c", "light": "#26703a"}
+
+MODES = {
+    "dark":  dict(label="Dark",  icon="dark_mode",         hint="Soft charcoal. The default."),
+    "mid":   dict(label="Mid",   icon="brightness_medium", hint="Mid slate, softer contrast."),
+    "light": dict(label="Light", icon="light_mode",        hint="Grey paper. Light without glare."),
+}
+
+# hue in degrees, and how much of the mode's saturation to actually use.
+BASES = {
+    "blue":    dict(label="Blue",    h=212, mul=1.00),
+    "green":   dict(label="Green",   h=148, mul=0.92),
+    "silver":  dict(label="Silver",  h=215, mul=0.22),
+    "gold":    dict(label="Gold",    h=42,  mul=1.00),
+    "magenta": dict(label="Magenta", h=318, mul=0.92),
+}
+
+
+def palette(mode, base, contrast=False):
+    spec = dict(MODE_SPEC[mode])
+    if contrast:
+        spec.update(MODE_HC[mode])
+    h, mul = BASES[base]["h"], BASES[base]["mul"]
+    tok = {k: _hex(h, s * mul, l) for k, (s, l) in spec.items()}
+    tok["ok"] = MODE_OK[mode]
+    return tok
+
+
+def swatch(base, mode):
+    """The colour shown on a base selector — the accent as it will actually
+    appear in the current mode, not an abstract hue."""
+    s, l = MODE_SPEC[mode]["a"]
+    b = BASES[base]
+    return _hex(b["h"], s * b["mul"], l)
+
+
+# --- text size ------------------------------------------------------------
+# 100% is what used to be 90%: the old default read too large at this density.
+# Ten-point steps rather than fifteen, and more of them, so the adjustment is
+# fine enough to actually land on a comfortable size.
+TEXT_BASE = 0.90
+TEXT_PCTS = [80, 90, 100, 110, 120, 130, 140, 150]
+TEXT_DEFAULT = TEXT_PCTS.index(100)
+
+
+def text_scale(idx):
+    return TEXT_BASE * TEXT_PCTS[idx] / 100.0
 
 
 def text_pct(idx):
-    return f"{round(TEXT_STEPS[idx] * 100)}%"
+    return f"{TEXT_PCTS[idx]}%"
 
 
 MONO = "ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace"
 READABLE = "'Atkinson Hyperlegible',Verdana,'DejaVu Sans',ui-sans-serif,system-ui,sans-serif"
 
-DEFAULTS = dict(tone="dark", text_idx=TEXT_DEFAULT, contrast=False,
+DEFAULTS = dict(mode="dark", base="blue", text_idx=TEXT_DEFAULT, contrast=False,
                 readable=False, motion=True, underline=False)
 
 
@@ -79,7 +128,7 @@ def set_opt(key, value):
 
 def step_text(delta):
     i = st.session_state["opt_text_idx"] + delta
-    st.session_state["opt_text_idx"] = max(0, min(len(TEXT_STEPS) - 1, i))
+    st.session_state["opt_text_idx"] = max(0, min(len(TEXT_PCTS) - 1, i))
     st.rerun()
 
 
@@ -99,9 +148,11 @@ def is_default(s):
 
 
 def summary(s):
-    """Human sentence describing the active settings. Also the screen-reader
-    announcement when anything changes."""
-    bits = [f'{PALETTES[s["tone"]]["label"]} theme', f'text {text_pct(s["text_idx"])}']
+    """Human sentence describing the active settings; also the screen-reader
+    announcement whenever anything changes."""
+    bits = [f'{MODES[s["mode"]]["label"]} mode',
+            f'{BASES[s["base"]]["label"].lower()} base',
+            f'text {text_pct(s["text_idx"])}']
     if s["contrast"]:
         bits.append("high contrast")
     if s["readable"]:
@@ -115,12 +166,8 @@ def summary(s):
 
 def css(s):
     """The whole page stylesheet, derived from the current settings."""
-    p = PALETTES[s["tone"]]
-    tok = dict(p["tok"])
-    if s["contrast"]:
-        tok.update(p["hc"])
-
-    scale = TEXT_STEPS[s["text_idx"]]
+    tok = palette(s["mode"], s["base"], s["contrast"])
+    scale = text_scale(s["text_idx"])
     ff = READABLE if s["readable"] else MONO
     # A readable face needs more air than a condensed mono at the same size.
     lh = 1.95 if s["readable"] else 1.85
@@ -275,5 +322,44 @@ section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.drw-sum
 .opt-row-lbl {{ font-size:calc(9px*var(--s)) !important; letter-spacing:.2em; text-transform:uppercase;
                color:var(--m2); margin:0; padding:12px 0 3px; }}
 {motion}
+
+/* --- base-colour palette: five joined chips, a real connected strip --- */
+.st-key-base_seg [data-testid="stHorizontalBlock"] {{ gap:0 !important; }}
+.st-key-base_seg [data-testid="stColumn"] {{ min-width:0 !important; }}
+.st-key-base_seg [data-testid="stColumn"] > div,
+.st-key-base_seg [data-testid="stElementContainer"],
+.st-key-base_seg .stButton {{ width:100% !important; display:block !important; }}
+.st-key-base_seg .stButton button {{
+  width:100% !important; padding:0 !important; height:calc(26px*var(--s));
+  border-radius:0 !important; border:1px solid var(--r) !important;
+  margin-left:-1px !important; box-shadow:none !important; }}
+.st-key-base_seg [data-testid="stColumn"]:first-child .stButton button {{
+  border-radius:4px 0 0 4px !important; margin-left:0 !important; }}
+.st-key-base_seg [data-testid="stColumn"]:last-child .stButton button {{
+  border-radius:0 4px 4px 0 !important; }}
+.st-key-base_seg .stButton button:hover {{ z-index:1; filter:brightness(1.12); }}
+.st-key-base_seg .stButton button[data-testid="stBaseButton-primary"] {{
+  z-index:2; outline:2px solid var(--fg); outline-offset:-3px; }}
+
+/* --- daily quote under the name --- */
+.quote {{ margin:0; padding:8px 0 2px; }}
+/* Literal characters, not CSS \201C escapes — those get mangled on the way
+   through the f-string and render as "·C" / "·D". */
+.quote q {{ display:block; font-size:calc(11px*var(--s)) !important; color:var(--fg2);
+  line-height:1.65 !important; font-style:italic; quotes:none; }}
+.quote q::before {{ content:"“"; }}
+.quote q::after  {{ content:"”"; }}
+.quote cite {{ display:block; font-size:calc(9.5px*var(--s)) !important; color:var(--m2);
+  font-style:normal; letter-spacing:.08em; text-transform:uppercase; padding-top:5px; }}
+
+/* --- contact row: icon links --- */
+.contact {{ display:flex; gap:6px; padding:2px 0 0; }}
+.contact a {{ display:inline-flex; align-items:center; justify-content:center;
+  width:calc(30px*var(--s)); height:calc(28px*var(--s)); border:1px solid var(--r);
+  border-radius:4px; color:var(--m); text-decoration:none !important; }}
+.contact a:hover {{ color:var(--a); border-color:var(--a); background:var(--hv); }}
+.contact a:focus-visible {{ outline:2px solid var(--a); outline-offset:2px; }}
+.contact svg {{ width:calc(15px*var(--s)); height:calc(15px*var(--s)); fill:currentColor;
+  display:block; }}
 </style>
 """

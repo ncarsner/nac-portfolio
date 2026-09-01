@@ -26,16 +26,18 @@ def _labels(s, drawer_open):
     lab = {
         "drawer_toggle": ("Hide appearance options" if drawer_open
                           else "Show appearance options"),
+        "opt_reset": "Reset all appearance options to defaults",
         "size_dec": f"Decrease text size. Currently {theme.text_pct(s['text_idx'])}",
         "size_inc": f"Increase text size. Currently {theme.text_pct(s['text_idx'])}",
-        "opt_reset": "Reset all appearance options to defaults",
         "tg_motion": "Reduce motion. Stops the live demos animating",
         "tg_contrast": "High contrast. Stronger text and borders",
         "tg_readable": "Readable font. A wider sans face instead of monospace",
         "tg_underline": "Underline links, so links are not signalled by colour alone",
     }
-    for k, p in theme.PALETTES.items():
-        lab[f"tone_{k}"] = f'{p["label"]} mode. {p["hint"]}'
+    for k, m in theme.MODES.items():
+        lab[f"mode_{k}"] = f'{m["label"]} mode. {m["hint"]}'
+    for k, b in theme.BASES.items():
+        lab[f"base_{k}"] = f'{b["label"]} colour base'
     # The ● / ○ prefix on a nav item is decorative — it would be announced as a
     # bullet character. Say what it actually means.
     for a in ARTIFACTS:
@@ -54,8 +56,10 @@ def _pressed(s):
         "tg_motion": not s["motion"],
         "drawer_toggle": None,          # expanded, handled separately
     }
-    for k in theme.PALETTES:
-        pr[f"tone_{k}"] = s["tone"] == k
+    for k in theme.MODES:
+        pr[f"mode_{k}"] = s["mode"] == k
+    for k in theme.BASES:
+        pr[f"base_{k}"] = s["base"] == k
     return {k: v for k, v in pr.items() if v is not None}
 
 
@@ -66,7 +70,8 @@ def emit(s, drawer_open=False):
         "pressed": _pressed(s),
         "expanded": {"drawer_toggle": drawer_open},
         # Modes are one choice, not three independent switches.
-        "radiogroup": ["tone_" + k for k in theme.PALETTES],
+        "radiogroup": (["mode_" + k for k in theme.MODES]
+                       + ["base_" + k for k in theme.BASES]),
         "current": {f"nav_{st.session_state.get('wb_sel')}": True},
         "demoTitle": "Live demo, running in the page",
         "imageAlt": "Placeholder screenshot standing in for a real one",

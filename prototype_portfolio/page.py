@@ -15,7 +15,9 @@ from pathlib import Path
 import streamlit as st
 from content import SITE, ARTIFACTS, KIND_LABEL, get
 import embeds
+import icons
 import panel
+import quotes
 import theme
 
 ORDER = ["app", "package", "site", "writing"]
@@ -47,13 +49,14 @@ def _nav():
 
 def _stage(a, s):
     if a.get("embed"):
-        embeds.render(st, a["embed"], tone=s["tone"], motion=s["motion"])
+        embeds.render(st, a["embed"], tone=s["mode"], motion=s["motion"])
     elif a.get("install"):
         st.markdown(pre(a["install"], "cmd") + pre(a["sample"]), unsafe_allow_html=True)
     else:
         # tint lives in the palette so it cannot drift out of sync with the tones
         st.image(embeds.placeholder(a["name"], a["one_liner"][:64],
-                                    a=theme.PALETTES[s["tone"]]["tint"]), width="stretch")
+                                    a=theme.palette(s["mode"], s["base"])["tint"]),
+                 width="stretch")
 
 
 def _facts(a):
@@ -70,12 +73,18 @@ def render():
     a = selection()
 
     with st.sidebar:
-        st.markdown(f'<div class="who">{SITE["name"]}<span>{SITE["tagline"]}</span></div>',
-                    unsafe_allow_html=True)
+        quote, who = quotes.today()
+        st.markdown(
+            f'<div class="who">{SITE["name"]}</div>'
+            f'<blockquote class="quote"><q>{quote}</q><cite>{who}</cite></blockquote>',
+            unsafe_allow_html=True)
         _nav()
         st.markdown('<div class="grp">Contact</div>', unsafe_allow_html=True)
-        st.markdown(" · ".join(f"[{k.lower()}]({u})" for k, u in SITE["links"].items()),
-                    unsafe_allow_html=True)
+        st.markdown('<div class="contact">' + "".join(
+            f'<a href="{u}" target="_blank" rel="noopener" '
+            f'aria-label="{k}" title="{k}">{icons.svg(k.lower())}</a>'
+            for k, u in SITE["links"].items() if icons.has(k.lower())
+        ) + "</div>", unsafe_allow_html=True)
         panel.render(s)
 
     st.markdown('<div class="wrap">', unsafe_allow_html=True)

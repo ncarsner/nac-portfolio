@@ -40,31 +40,70 @@ Read "but lighter" as near-white. Verdict: **too light.** Kept in history at
 active, so the sidebar belongs to the work until someone wants the controls. The
 rejected panels (Swatches, List) are in history at `4fb9bc0`.
 
-## Round 6 — refinements
+## Round 6-7 — refinements
 
 Nothing is being compared any more, so the prototype's variant bar is gone.
 
-- **Three modes, icons only.** A moon, a half-disc and a sun, joined into one
-  segmented control. Dark / mid / light is legible without reading anything and
-  the colour names were arbitrary; the names survive only as accessible names.
-- **Word-style text sizing.** Minus, current size, plus, over five fixed steps
-  (90 / 100 / 115 / 130 / 145%). The ends disable rather than wrap — wrapping
-  from largest back to smallest would be a nasty surprise — and five steps is
-  enough range to matter while keeping either end two clicks away.
-- **Screen-reader text throughout.** See below.
+### The sidebar, bottom to top
+
+- **Mode** and **Text size** are **always visible** — the two controls people
+  actually reach for.
+- **Appearance Options** (collapsed) holds what is set once and forgotten: the
+  colour base and the accessibility toggles.
+
+### Two palette axes, generated not hardcoded
+
+| Axis | Values |
+|------|--------|
+| **Mode** | dark (default), mid, light — icons only: moon, half-disc, sun |
+| **Colour base** | blue (default), green, silver, gold, magenta |
+
+That is fifteen combinations, so the palette is **generated**. Each mode is a
+ramp of (saturation, lightness) targets per token; each base supplies a hue and a
+saturation multiplier — silver is simply a base whose multiplier is near zero.
+Every combination is therefore internally consistent: picking a new base can
+never produce a page whose borders and text stop relating to its background.
+See `MODE_SPEC` / `BASES` in `theme.py`; changing the whole look is a table edit.
+
+The base selector is a connected strip of five chips, each painted with the
+accent **that base actually yields in the current mode** — so in light mode the
+chips are dark, because that is what you will get.
+
+### Text size
+
+Ten-point steps rather than fifteen, and more of them:
+**80 / 90 / 100 / 110 / 120 / 130 / 140 / 150%**, default 100%.
+
+`100%` is what used to be `90%` — the old default read too large at this density,
+so the whole scale was rebased (`TEXT_BASE = 0.90`) rather than just relabelled.
+The ends disable rather than wrap.
+
+### Contact row
+
+GitHub, email, LinkedIn and resume as inline 24x24 SVG using `currentColor`, so
+they follow the palette and scale with the text-size setting. GitHub and LinkedIn
+are the official brand marks; email is an envelope and resume is a document.
+
+### Daily quote
+
+The headline under the name rotates through five widely published quotations
+(placeholders — swap them for lines that are actually yours). It changes **once a
+day, not once a reload**: the index is seeded from the ordinal date, so there is
+no storage, no cookie, no session state, and every visitor sees the same line on
+the same day. That is what makes it read as a publication rather than a slot
+machine.
 
 ### Settings
 
 - **Mode** — dark (default), mid, light
-- **Text size** — five steps, 90% to 145%
-- **High contrast** — stronger text and borders
+- **Colour base** — blue (default), green, silver, gold, magenta
+- **Text size** — eight steps, 80% to 150%
+- **High contrast** — pushes text to the extremes, strengthens the rules
 - **Readable font** — wider sans instead of monospace
 - **Underline links** — do not signal links by colour alone
 - **Reduce motion** — stops the live demos animating
 
-State lives in `st.session_state`: in memory, never persisted. Reduce motion is
-built into the demos rather than applied as page CSS — an iframe is a separate
-document, so the still version is a separate build.
+State lives in `st.session_state`: in memory, never persisted.
 
 ## Accessibility notes
 
@@ -74,27 +113,28 @@ icon-only button has **no accessible name at all** — a screen reader announces
 publishes a label map into a hidden element and `proto_boot.html` copies it onto
 the real controls, re-applying after every rerun via a `MutationObserver`.
 
-What that buys:
-
-- Every icon-only control has an `aria-label` that includes its current value
+- Every icon-only control has an `aria-label` including its current value
   ("Increase text size. Currently 100%").
-- The three modes are a `radiogroup` with `aria-checked`, so they announce as one
-  choice rather than three unrelated switches.
-- Toggles carry `aria-pressed`; the drawer carries `aria-expanded`.
-- Icon spans are `aria-hidden`, so the ligature name is never announced.
-- Nav items get a real description instead of the decorative `●`/`○` bullet, and
-  the selected one carries `aria-current`.
-- The live demo iframe gets a title; the helper iframe is `aria-hidden` and
-  removed from the tab order.
+- Mode and colour base are each a `radiogroup` with `aria-checked`, so they
+  announce as one choice rather than N unrelated switches.
+- Toggles carry `aria-pressed`; the disclosure carries `aria-expanded`.
+- Icon spans are `aria-hidden`, so ligature names are never announced.
+- Contact links are icon-only and carry `aria-label` + `title`; their SVGs are
+  `aria-hidden` and `focusable="false"`.
+- Nav items get a real description instead of the decorative `●`/`○`, and the
+  selected one carries `aria-current`.
+- The live demo iframe gets a title; the helper iframe is `aria-hidden` and out
+  of the tab order.
 - A visually hidden `role="status"` region announces the settings summary
   whenever anything changes.
 
-It is all additive: if the script never runs the page still works, it is just
-less well described.
+All additive: if the script never runs the page still works, it is just less well
+described.
 
-**Not done:** this has been verified by inspecting the accessibility tree in the
-DOM, not by driving an actual screen reader. Keyboard focus order and contrast
-ratios have not been audited either. Both are worth doing before this ships.
+**Not done:** verified by inspecting the accessibility tree in the DOM, not by
+driving a real screen reader. Keyboard focus order and contrast ratios across all
+fifteen mode x base combinations have not been audited — with silver and gold in
+light mode being the obvious risks. Both are worth doing before this ships.
 
 ## Run
 
@@ -110,9 +150,11 @@ into your system Python and there is no venv to clean up. Then
 
 ```
 app.py              entry — chrome reset
-theme.py            palettes + settings + the whole stylesheet, derived per render
+theme.py            the palette generator + settings + the whole stylesheet
 page.py             the settled page
-panel.py            the options drawer
+panel.py            always-visible mode/size + the Appearance Options disclosure
+quotes.py           the daily headline, seeded from the date
+icons.py            inline SVG for the contact row
 a11y.py             accessible names, published for proto_boot.html to apply
 proto_boot.html     sidebar repair + the accessible-name pass, iframed at height 1
 content.py          FAKE placeholder data — all in memory, nothing persisted
@@ -122,7 +164,7 @@ demos/build.py      builds each demo per mode, animated and still
 
 ## Streamlit chrome traps, recorded so they are not repeated
 
-Seven now, across six rounds. Each was found in a real browser with Playwright,
+Eight now, across seven rounds. Each was found in a real browser with Playwright,
 not by reasoning — several survived a fix written from a guess.
 
 1. **Never hide `header[data-testid="stHeader"]` or `[data-testid="stToolbar"]`.**
@@ -140,20 +182,27 @@ not by reasoning — several survived a fix written from a guess.
 6. **The markdown wrapper does not grow with the inner div's padding**, so
    headers overflow their element container. Those containers carry a `min-height`.
 7. **A button wrapper is shrink-to-fit**, so `width:100%` on the button resolves
-   against the icon's own width. Widen every box in the chain.
+   against the icon's own width.
+8. **CSS unicode escapes get mangled** on the way through the f-string that
+   builds the stylesheet — `quotes:'\201C'` rendered as `·C`. Use literal
+   characters in `content:`.
 
 ## Caveats, stated plainly
 
-- **All content is invented.** "Sam Rivera" and every project, metric and link is
-  placeholder, present only so the layout is judged at realistic density.
+- **All content is invented**, quotes included. "Sam Rivera", every project,
+  metric and link, and the five quotations are placeholders, present only so the
+  layout is judged at realistic density.
+- **The demos follow the mode, not the colour base.** Building them for all
+  fifteen combinations would mean sixty files for little gain, and a genuinely
+  third-party embedded app would keep its own branding anyway.
 - **The demos are real but local.** Working zero-dependency apps, iframed. In the
   real site those iframes point at deployed apps instead.
 - **Screenshots are SVG placeholders**, labelled as such.
-- **Settings do not persist.** Reload and you are back to dark at 100%.
+- **Settings do not persist.** Reload and you are back to dark / blue / 100%.
   Persisting them is a real decision (cookie? localStorage? account?) and a
   prototype should not quietly assume one.
-- **Streamlit is still on trial.** Seven traps in six rounds, all the same shape:
-  depending on internal class names and test ids with no compatibility guarantee.
-  The accessibility layer is the sharpest case — it exists only because there is
-  no supported way to set an aria attribute, and it would break the day Streamlit
-  changes its DOM.
+- **Streamlit is still on trial.** Eight traps in seven rounds, all the same
+  shape: depending on internal class names and test ids with no compatibility
+  guarantee. The accessibility layer is the sharpest case — it exists only
+  because there is no supported way to set an aria attribute, and it would break
+  the day Streamlit changes its DOM.

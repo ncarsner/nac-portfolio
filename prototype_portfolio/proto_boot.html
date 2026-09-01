@@ -72,9 +72,11 @@
       else if (key.indexOf('nav_') === 0) btn.removeAttribute('aria-current');
     });
 
-    // Group the three modes so they announce as one choice, not three switches.
-    var seg = doc.querySelector('.st-key-mode_seg [data-testid="stHorizontalBlock"]');
-    if (seg) { seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', 'Colour mode'); }
+    // Each strip is one choice, not N independent switches.
+    [['mode_seg', 'Display mode'], ['base_seg', 'Colour base']].forEach(function (g) {
+      var seg = doc.querySelector('.st-key-' + g[0] + ' [data-testid="stHorizontalBlock"]');
+      if (seg) { seg.setAttribute('role', 'radiogroup'); seg.setAttribute('aria-label', g[1]); }
+    });
 
     doc.querySelectorAll('iframe').forEach(function (f) {
       var r = f.getBoundingClientRect();

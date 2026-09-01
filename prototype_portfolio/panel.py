@@ -1,17 +1,13 @@
 """
-The options panel — "Drawer", chosen in round 5.
+The options panel.
 
-Collapsed to a single "Appearance" line with a summary of what is active, so the
-sidebar belongs to the work until someone actually wants the controls.
+Round 6 refinement: the two controls people actually reach for — mode and text
+size — are ALWAYS VISIBLE. Everything else lives behind "Appearance Options",
+collapsed, because it is set once and then forgotten.
 
-Two refinements on the chosen design:
-  * the three modes are ICON ONLY, joined into one segmented control. Dark, mid
-    and light are legible from a moon / half / sun without reading anything, and
-    the colour names were arbitrary. The names survive only for screen readers.
-  * text size is a Word-style stepper — minus, current size, plus — over five
-    fixed steps rather than three named presets.
-
-Every icon-only control carries an accessible name; see a11y.py.
+Inside that section, the colour base is a connected strip of five chips painted
+with the accent each one produces in the current mode, so the choice is made by
+looking rather than by reading a name.
 """
 import streamlit as st
 import a11y
@@ -19,7 +15,7 @@ import theme
 
 CSS = """
 <style>
-.st-key-opt_drawer { border-top:1px solid var(--r); padding-top:8px; }
+.st-key-opt_always { border-top:1px solid var(--r); padding-top:10px; }
 .st-key-opt_drawer .stButton button { padding:4px 8px !important; }
 .st-key-drawer_body { border-left:2px solid var(--r); margin:4px 0 0 7px; padding-left:8px; }
 .drw-sum { font-size:calc(9.5px*var(--s)) !important; color:var(--m2); margin:0;
@@ -28,29 +24,24 @@ CSS = """
 """
 
 TOGGLES = [
-    ("contrast",  "High contrast",   "contrast",
-     "Stronger text and borders."),
-    ("readable",  "Readable font",   "text_fields",
-     "A wider sans face instead of monospace."),
-    ("underline", "Underline links", "format_underlined",
-     "Do not signal links by colour alone."),
+    ("contrast",  "High contrast",   "contrast"),
+    ("readable",  "Readable font",   "text_fields"),
+    ("underline", "Underline links", "format_underlined"),
 ]
 
 
 def _modes(s):
-    """Three icon-only buttons, joined into one segmented control."""
     with st.container(key="mode_seg"):
-        cols = st.columns(len(theme.PALETTES))
-        for col, (k, p) in zip(cols, theme.PALETTES.items()):
+        for col, (k, m) in zip(st.columns(len(theme.MODES)), theme.MODES.items()):
             with col:
-                if st.button("", key=f"tone_{k}", icon=f':material/{p["icon"]}:',
-                             type="primary" if s["tone"] == k else "secondary"):
-                    theme.set_opt("tone", k)
+                if st.button("", key=f"mode_{k}", icon=f':material/{m["icon"]}:',
+                             type="primary" if s["mode"] == k else "secondary"):
+                    theme.set_opt("mode", k)
 
 
 def _size(s):
-    """Minus / current / plus, the Word idiom. Ends disable rather than wrap —
-    wrapping from largest back to smallest would be a nasty surprise."""
+    """Minus / current / plus. Ends disable rather than wrap — wrapping from the
+    largest size back to the smallest would be a nasty surprise."""
     i = s["text_idx"]
     with st.container(key="size_seg"):
         dec, val, inc = st.columns([1, 1.4, 1])
@@ -63,8 +54,24 @@ def _size(s):
                         unsafe_allow_html=True)
         with inc:
             if st.button("", key="size_inc", icon=":material/text_increase:",
-                         disabled=i == len(theme.TEXT_STEPS) - 1):
+                         disabled=i == len(theme.TEXT_PCTS) - 1):
                 theme.step_text(1)
+
+
+def _bases(s):
+    """Five chips, joined, each painted with the accent it actually yields in
+    the current mode."""
+    st.markdown(
+        "<style>" + "".join(
+            f'.st-key-base_{k} button {{ background:{theme.swatch(k, s["mode"])} !important; }}'
+            for k in theme.BASES
+        ) + "</style>", unsafe_allow_html=True)
+    with st.container(key="base_seg"):
+        for col, (k, b) in zip(st.columns(len(theme.BASES)), theme.BASES.items()):
+            with col:
+                if st.button("", key=f"base_{k}",
+                             type="primary" if s["base"] == k else "secondary"):
+                    theme.set_opt("base", k)
 
 
 def render(s):
@@ -72,8 +79,16 @@ def render(s):
     st.session_state.setdefault("drawer_open", False)
     open_ = st.session_state.drawer_open
 
+    # Always visible: the two controls people actually reach for.
+    with st.container(key="opt_always"):
+        st.markdown('<div class="opt-row-lbl">Mode</div>', unsafe_allow_html=True)
+        _modes(s)
+        st.markdown('<div class="opt-row-lbl">Text size</div>', unsafe_allow_html=True)
+        _size(s)
+
+    # Set-once-and-forget: behind a disclosure.
     with st.container(key="opt_drawer"):
-        if st.button("Appearance", key="drawer_toggle",
+        if st.button("Appearance Options", key="drawer_toggle",
                      icon=f":material/{'expand_more' if open_ else 'chevron_right'}:"):
             st.session_state.drawer_open = not open_
             st.rerun()
@@ -82,13 +97,12 @@ def render(s):
 
         if open_:
             with st.container(key="drawer_body"):
-                st.markdown('<div class="opt-row-lbl">Mode</div>', unsafe_allow_html=True)
-                _modes(s)
-                st.markdown('<div class="opt-row-lbl">Text size</div>', unsafe_allow_html=True)
-                _size(s)
+                st.markdown('<div class="opt-row-lbl">Colour base</div>',
+                            unsafe_allow_html=True)
+                _bases(s)
                 st.markdown('<div class="opt-row-lbl">Accessibility</div>',
                             unsafe_allow_html=True)
-                for key, label, icon, hint in TOGGLES:
+                for key, label, icon in TOGGLES:
                     if st.button(label, key=f"tg_{key}", icon=f":material/{icon}:",
                                  type="primary" if s[key] else "secondary"):
                         theme.toggle(key)
@@ -100,5 +114,4 @@ def render(s):
                                  icon=":material/restart_alt:"):
                         theme.reset()
 
-    # Accessible names for the icon-only controls, plus the live announcement.
     a11y.emit(s, drawer_open=open_)
