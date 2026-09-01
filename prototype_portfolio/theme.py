@@ -111,8 +111,11 @@ def text_pct(idx):
 MONO = "ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace"
 READABLE = "'Atkinson Hyperlegible',Verdana,'DejaVu Sans',ui-sans-serif,system-ui,sans-serif"
 
-DEFAULTS = dict(mode="dark", base="blue", text_idx=TEXT_DEFAULT, contrast=False,
-                readable=False, motion=True, underline=False)
+# Accessibility-forward defaults: the page starts at high contrast with motion
+# reduced, and someone who wants the softer, animated version opts into it. Note
+# `motion` is stored as "motion is allowed", so reduced motion is motion=False.
+DEFAULTS = dict(mode="dark", base="blue", text_idx=TEXT_DEFAULT, contrast=True,
+                readable=False, motion=False, underline=False)
 
 
 def state():

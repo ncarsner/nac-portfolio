@@ -106,13 +106,23 @@ machine.
 
 ### Settings
 
-- **Mode** — dark (default), mid, light
-- **Colour base** — blue (default), green, silver, gold, magenta
-- **Text size** — eight steps, 80% to 150%
-- **High contrast** — pushes text to the extremes, strengthens the rules
-- **Readable font** — wider sans instead of monospace
-- **Underline links** — do not signal links by colour alone
-- **Reduce motion** — stops the live demos animating
+| Setting | Default | Effect |
+|---------|---------|--------|
+| Mode | **dark** | dark / mid / light |
+| Colour base | **blue** | blue / green / silver / gold / magenta |
+| Text size | **100%** | eight steps, 80-150% |
+| High contrast | **on** | pushes text to the extremes, rules to 2px |
+| Reduce motion | **on** | stops the live demos animating |
+| Readable font | off | wider sans instead of monospace |
+| Underline links | off | do not signal links by colour alone |
+
+**The defaults are accessibility-forward**: the page starts at high contrast with
+motion reduced, and someone who wants the softer, animated version opts into it.
+That is the safer direction to be wrong in — nobody is harmed by too much
+contrast or too little animation, and the reverse is not true.
+
+Note `motion` is stored as *"motion is allowed"*, so reduced motion is
+`motion=False`. Worth knowing before reading `DEFAULTS`.
 
 State lives in `st.session_state`: in memory, never persisted.
 
