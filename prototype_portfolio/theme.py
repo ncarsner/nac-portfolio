@@ -226,6 +226,10 @@ section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.opt-hin
   min-height:calc(34px*var(--s)) !important; }}
 section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.drw-sum) {{
   min-height:calc(24px*var(--s)) !important; }}
+section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.contact) {{
+  min-height:calc(50px*var(--s)) !important; }}
+section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.quote) {{
+  min-height:calc(58px*var(--s)) !important; }}
 
 .hd {{ display:flex; align-items:baseline; gap:10px; padding-bottom:9px;
       border-bottom:var(--bw) solid var(--r); }}
@@ -353,13 +357,13 @@ section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.drw-sum
   font-style:normal; letter-spacing:.08em; text-transform:uppercase; padding-top:5px; }}
 
 /* --- contact row: icon links --- */
-.contact {{ display:flex; gap:6px; padding:2px 0 0; }}
-.contact a {{ display:inline-flex; align-items:center; justify-content:center;
-  width:calc(30px*var(--s)); height:calc(28px*var(--s)); border:1px solid var(--r);
-  border-radius:4px; color:var(--m); text-decoration:none !important; }}
+.contact {{ display:flex; justify-content:space-between; gap:8px; padding:5px 0 3px; }}
+.contact a {{ flex:1 1 0; min-width:0; display:inline-flex; align-items:center;
+  justify-content:center; height:calc(38px*var(--s)); border:1px solid var(--r);
+  border-radius:5px; color:var(--m); text-decoration:none !important; }}
 .contact a:hover {{ color:var(--a); border-color:var(--a); background:var(--hv); }}
 .contact a:focus-visible {{ outline:2px solid var(--a); outline-offset:2px; }}
-.contact svg {{ width:calc(15px*var(--s)); height:calc(15px*var(--s)); fill:currentColor;
+.contact svg {{ width:calc(20px*var(--s)); height:calc(20px*var(--s)); fill:currentColor;
   display:block; }}
 </style>
 """

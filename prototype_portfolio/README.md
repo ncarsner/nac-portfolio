@@ -84,6 +84,11 @@ GitHub, email, LinkedIn and resume as inline 24x24 SVG using `currentColor`, so
 they follow the palette and scale with the text-size setting. GitHub and LinkedIn
 are the official brand marks; email is an envelope and resume is a document.
 
+The four tiles are `flex:1`, so they distribute evenly across the full sidebar
+width with equal margins at either end, at every text size. Their element
+container carries a `min-height` — without it the next section's `border-top` is
+drawn straight across the icons (trap 6 below, in a second costume).
+
 ### Daily quote
 
 The headline under the name rotates through five widely published quotations
@@ -179,8 +184,11 @@ not by reasoning — several survived a fix written from a guess.
    silently did nothing. Every size that matters says `!important`.
 5. **A button with `help=` is wrapped in tooltip spans**, so `.stButton > button`
    skips it. Use `.stButton button`.
-6. **The markdown wrapper does not grow with the inner div's padding**, so
-   headers overflow their element container. Those containers carry a `min-height`.
+6. **The markdown wrapper does not grow with the inner div's padding**, so the
+   content overflows its element container and the NEXT block is drawn on top of
+   it. It bit the group headers first and the contact row later — where it showed
+   up as a rule sliced through the icons. Every such container carries an
+   explicit `min-height`.
 7. **A button wrapper is shrink-to-fit**, so `width:100%` on the button resolves
    against the icon's own width.
 8. **CSS unicode escapes get mangled** on the way through the f-string that
