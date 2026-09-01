@@ -6,17 +6,19 @@ Round 1 asked what the site's STRUCTURE should be, and answered it: variant B,
 selected one full size. See DECISION.md. That is settled and no longer varies.
 
 Round 2 chose the visual language: "Instrument" — dense, monospace, hairline
-rules, no decoration. The note on it was "but lighter", which has two readings,
-so round 3 builds both and a middle option:
+rules, no decoration. Round 3 read "but lighter" as near-white and overshot: the
+verdict was "too light". Round 4 therefore brackets the MIDDLE of that range
+rather than running to either end:
 
-    Instrument is right. What does "lighter" mean?
+    Instrument is right. How far up from near-black?
 
-Three treatments of the identical skeleton (variants/shell.py holds the running
-order, so the comparison is honest). Switch with ?variant= or the bottom bar:
+Three ground tones on the identical skeleton (variants/shell.py holds the running
+order). Density and structure are unchanged from the original Instrument — the
+ground tone is the only variable. Switch with ?variant= or the bottom bar:
 
-  1 — Instrument Light  lighter in COLOUR: same density, near-white ground
-  2 — Instrument Airy   lighter in WEIGHT: open rhythm, larger type, few rules
-  3 — Instrument Slate  same as 1 but on warm paper, rust signal colour
+  1 — Slate  soft charcoal, the minimal lift off near-black
+  2 — Fog    mid slate, low contrast; the far end of "lighter" still dark
+  3 — Ash    light grey paper, not white; light without the glare
 
 Run:  ./run          (or: uv run --with 'streamlit>=1.42' streamlit run app.py)
 """
@@ -27,35 +29,51 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 import switcher
-from variants import v1_light, v2_airy, v3_slate
+from variants import v1_slate, v2_fog, v3_ash
 
-VARIANTS = {"1": v1_light, "2": v2_airy, "3": v3_slate}
+VARIANTS = {"1": v1_slate, "2": v2_fog, "3": v3_ash}
 
 st.set_page_config(page_title="Portfolio prototype", layout="wide",
                    initial_sidebar_state="expanded")
 
 # Strip Streamlit chrome — it is not part of any design being evaluated.
 #
-# NOTE: do NOT hide header[data-testid="stHeader"] wholesale. The control that
-# re-opens a collapsed sidebar lives inside that header, so hiding it strands the
-# sidebar shut with no way back (it also auto-collapses on a narrow window).
-# Hide the toolbar contents instead and leave the header itself present but
-# transparent and click-through.
+# CAREFUL. Two traps here, both hit during this prototype:
+#
+#  1. Do NOT hide header[data-testid="stHeader"], and do NOT hide
+#     [data-testid="stToolbar"]. The control that re-opens a collapsed sidebar
+#     (stExpandSidebarButton) is rendered INSIDE that toolbar, inside that
+#     header. Hiding either one strands the sidebar shut with no way back.
+#     Hide the individual toolbar children instead.
+#  2. Streamlit persists the collapsed flag in localStorage under
+#     "stSidebarCollapsed-<base>", and that read beats initial_sidebar_state —
+#     so a sidebar collapsed once stays collapsed on every later reload. CSS
+#     cannot fix that; proto_boot.html clears the flag on load.
 st.markdown("""
 <style>
-  header[data-testid="stHeader"] {
-    background: transparent !important; height: auto !important;
-    pointer-events: none;
-  }
-  header[data-testid="stHeader"] * { pointer-events: auto; }
-  [data-testid="stToolbar"], [data-testid="stAppToolbar"], [data-testid="stDecoration"],
-  [data-testid="stStatusWidget"], #MainMenu, footer { display: none !important; }
+  header[data-testid="stHeader"] { background: transparent !important; }
+  [data-testid="stToolbar"] { background: transparent !important; }
 
-  /* Keep both sidebar controls reachable and visible. */
-  [data-testid="stSidebarCollapseButton"],
-  [data-testid="stSidebarCollapsedControl"],
-  [data-testid="stExpandSidebarButton"] {
-    display: flex !important; visibility: visible !important; opacity: 1 !important;
+  /* Hide toolbar CHILDREN, never the toolbar itself. */
+  #MainMenu, [data-testid="stStatusWidget"], [data-testid="stDecoration"],
+  [data-testid="stAppDeployButton"], [data-testid="stAppCreatorAvatar"],
+  footer { display: none !important; }
+
+  /* Keep both sidebar controls reachable no matter what else is hidden. */
+  [data-testid="stExpandSidebarButton"],
+  [data-testid="stSidebarCollapseButton"] {
+    display: inline-flex !important; visibility: visible !important;
+    opacity: 1 !important; pointer-events: auto !important;
+  }
+
+  /* Material icon glyphs are ligatures. A variant that forces font-family on a
+     broad selector like `.stApp span` overrides the icon font and the ligature
+     renders as literal text ("keyboard_double_arrow_left"). Higher specificity
+     than `.stApp span`, so it wins regardless of injection order. */
+  .stApp [data-testid="stIconMaterial"], [data-testid="stIconMaterial"] {
+    font-family: 'Material Symbols Rounded' !important;
+    font-weight: 400 !important; letter-spacing: normal !important;
+    font-feature-settings: 'liga' !important;
   }
 
   [data-testid="stAppViewBlockContainer"], .block-container {

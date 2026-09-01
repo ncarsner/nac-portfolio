@@ -1,11 +1,13 @@
 # PROTOTYPE — pin the base theme so the variants' own CSS is not fighting
-# whatever the viewer's OS dark-mode preference is. Round 3 is all light.
+# whatever the viewer's OS dark-mode preference is. Round 4 spans lifted-dark
+# to mid-grey, so a dark base is the closer starting point. Code blocks are
+# hand-rolled in shell.pre() precisely so this setting cannot leak into them.
 [theme]
-base = "light"
-backgroundColor = "#fcfcfd"
-secondaryBackgroundColor = "#f1f3f5"
-textColor = "#10151a"
-primaryColor = "#0b5fd0"
+base = "dark"
+backgroundColor = "#1c2128"
+secondaryBackgroundColor = "#262c34"
+textColor = "#dfe4ea"
+primaryColor = "#6cb6ff"
 
 [browser]
 gatherUsageStats = false

@@ -15,6 +15,8 @@ Each variant therefore owns its own CSS and its own renderers for the blocks;
 this module only holds the running order and the bits with no visual opinion,
 so the three stay honestly comparable.
 """
+import html as _html
+
 import streamlit as st
 from content import SITE, ARTIFACTS, KIND_LABEL, get
 import embeds
@@ -45,16 +47,23 @@ def nav(label_fn=None, marker=True):
                 st.rerun()
 
 
-def stage(a, height=470, placeholder_tint="#1f6feb", theme="light"):
+def stage(a, height=None, placeholder_tint="#1f6feb", tone="slate"):
     """Run the artifact. This is the block round 1 was won on — never a thumbnail."""
     if a.get("embed"):
-        embeds.render(st, a["embed"], height=height, theme=theme)
+        embeds.render(st, a["embed"], height=height, tone=tone)
     elif a.get("install"):
-        st.code(a["install"], language="bash")
-        st.code(a["sample"], language="python")
+        # Deliberately NOT st.code: that widget is painted by Streamlit's base
+        # theme, which would fight whatever palette the variant is proposing.
+        # Owning the markup keeps every variant in full control of its own look.
+        st.markdown(pre(a["install"], "cmd") + pre(a["sample"]), unsafe_allow_html=True)
     else:
         st.image(embeds.placeholder(a["name"], a["one_liner"][:64], a=placeholder_tint),
                  width="stretch")
+
+
+def pre(code, cls=""):
+    """A code block the variant styles itself, via .code / .code.cmd."""
+    return f'<pre class="code {cls}"><code>{_html.escape(code)}</code></pre>'
 
 
 def stage_label(a):

@@ -75,4 +75,4 @@ def render(variants, active):
             if st.button("›", key="proto_next", help="Next variant (→)"):
                 _go(keys[(i + 1) % len(keys)])
 
-    st.iframe(Path(__file__).parent / "switcher_keys.html", height=1)
+    st.iframe(Path(__file__).parent / "proto_boot.html", height=1)

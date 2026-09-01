@@ -1,0 +1,57 @@
+<!doctype html><meta charset="utf-8">
+<script>
+// PROTOTYPE chrome helper. Runs in a same-origin iframe, so it can reach the
+// parent document. Two jobs:
+//
+//   1. Repair a stuck sidebar. Streamlit persists the collapsed flag in
+//      localStorage under "stSidebarCollapsed-<base>", and that read WINS over
+//      initial_sidebar_state — so once collapsed it stays collapsed on every
+//      reload, forever. We clear the flag and click the expand control once per
+//      page load. Collapsing by hand still works for the rest of the session.
+//   2. Bind the left/right arrow keys to the variant switcher.
+//
+// Both are best-effort: if the browser blocks parent access, nothing breaks.
+(function () {
+  var doc, win;
+  try { doc = window.parent.document; win = window.parent; } catch (e) { return; }
+
+  // ---- 1. sidebar repair, once per page load -----------------------------
+  if (!doc.__protoSidebarFixed) {
+    doc.__protoSidebarFixed = true;
+    try {
+      for (var i = win.localStorage.length - 1; i >= 0; i--) {
+        var k = win.localStorage.key(i);
+        if (k && k.indexOf('stSidebarCollapsed-') === 0) {
+          win.localStorage.setItem(k, 'false');
+        }
+      }
+    } catch (e) { /* storage blocked — fall through to the click */ }
+
+    // The expand control only exists while the sidebar is collapsed.
+    var tries = 0;
+    var open = function () {
+      var btn = doc.querySelector('[data-testid="stExpandSidebarButton"]');
+      var wide = (win.innerWidth || 1200) > 768;
+      if (btn && wide) { btn.click(); return; }
+      if (++tries < 20) win.setTimeout(open, 100);
+    };
+    open();
+  }
+
+  // ---- 2. arrow keys -----------------------------------------------------
+  if (doc.__protoKeys) return;
+  doc.__protoKeys = true;
+  doc.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    var bar = doc.querySelector('.st-key-proto_switcher');
+    if (!bar) return;
+    var btns = bar.querySelectorAll('button');
+    if (btns.length < 2) return;
+    e.preventDefault();
+    (e.key === 'ArrowLeft' ? btns[0] : btns[btns.length - 1]).click();
+  });
+})();
+</script>

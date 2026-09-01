@@ -1,34 +1,34 @@
 <!doctype html><meta charset='utf-8'>
 
 <style>
-  :root { color-scheme: light; }
+  :root { color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin:0; font: 13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
-         background:#ffffff; color:#10151a; }
-  .wrap { border:1px solid #e1e4e8; border-radius:10px; overflow:hidden; }
+         background:#191e24; color:#dfe4ea; }
+  .wrap { border:1px solid #333b45; border-radius:10px; overflow:hidden; }
   .bar { display:flex; align-items:center; gap:8px; padding:8px 12px;
-         background:#f6f7f9; border-bottom:1px solid #e1e4e8; font-size:11px;
-         letter-spacing:.08em; text-transform:uppercase; color:#6b7480; }
-  .dot { width:9px; height:9px; border-radius:50%; background:#1a7f37; }
+         background:#212831; border-bottom:1px solid #333b45; font-size:11px;
+         letter-spacing:.08em; text-transform:uppercase; color:#7d8894; }
+  .dot { width:9px; height:9px; border-radius:50%; background:#57ab5a; }
   .body { padding:14px; }
-  input, textarea { width:100%; background:#ffffff; color:#10151a;
-    border:1px solid #e1e4e8; border-radius:6px; padding:8px 10px;
+  input, textarea { width:100%; background:#191e24; color:#dfe4ea;
+    border:1px solid #333b45; border-radius:6px; padding:8px 10px;
     font: inherit; outline:none; }
-  input:focus, textarea:focus { border-color:#0b5fd0; }
+  input:focus, textarea:focus { border-color:#6cb6ff; }
   label { display:block; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
-          color:#6b7480; margin:10px 0 5px; }
-  mark { background:#0b5fd01f; color:#06306b; border-radius:3px;
-         box-shadow:0 0 0 1px #0b5fd066; }
+          color:#7d8894; margin:10px 0 5px; }
+  mark { background:#6cb6ff2e; color:#dfe4ea; border-radius:3px;
+         box-shadow:0 0 0 1px #6cb6ff88; }
 </style>
 
 <div class="wrap">
   <div class="bar"><span class="dot"></span> deploy board &middot; streaming</div>
   <div class="body">
     <div id="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:7px"></div>
-    <div style="margin-top:12px;display:flex;gap:16px;color:#6b7480;font-size:11px">
-      <span><b id="ok" style="color:#1a7f37">0</b> healthy</span>
-      <span><b id="deg" style="color:#9a6700">0</b> degraded</span>
-      <span><b id="bad" style="color:#cf222e">0</b> failing</span>
+    <div style="margin-top:12px;display:flex;gap:16px;color:#7d8894;font-size:11px">
+      <span><b id="ok" style="color:#57ab5a">0</b> healthy</span>
+      <span><b id="deg" style="color:#d4a13a">0</b> degraded</span>
+      <span><b id="bad" style="color:#e5534b">0</b> failing</span>
       <span style="margin-left:auto">refreshed <b id="age">0</b>s ago</span>
     </div>
   </div>
@@ -39,10 +39,10 @@
   const grid = document.getElementById('grid');
   const cells = names.map(n => {
     const d = document.createElement('div');
-    d.style.cssText = 'border:1px solid #e1e4e8;border-radius:7px;padding:8px 9px;background:#fbfcfd';
-    d.innerHTML = '<div style="color:#10151a;font-size:12px">'+n+'</div>' +
+    d.style.cssText = 'border:1px solid #333b45;border-radius:7px;padding:8px 9px;background:#14181d';
+    d.innerHTML = '<div style="color:#dfe4ea;font-size:12px">'+n+'</div>' +
       '<div class="s" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase"></div>' +
-      '<div class="l" style="color:#6b7480;font-size:10px;margin-top:3px"></div>';
+      '<div class="l" style="color:#7d8894;font-size:10px;margin-top:3px"></div>';
     grid.appendChild(d); return d;
   });
   let t = 0;
@@ -51,10 +51,10 @@
     cells.forEach((d,i) => {
       const r = Math.sin(t/7 + i*1.7) * 0.5 + 0.5;
       const state = r > 0.92 ? 'failing' : r > 0.78 ? 'degraded' : 'healthy';
-      const col = state==='healthy' ? '#1a7f37' : state==='degraded' ? '#9a6700' : '#cf222e';
+      const col = state==='healthy' ? '#57ab5a' : state==='degraded' ? '#d4a13a' : '#e5534b';
       state==='healthy' ? ok++ : state==='degraded' ? deg++ : bad++;
       const s = d.querySelector('.s'); s.textContent = state; s.style.color = col;
-      d.style.borderColor = state==='healthy' ? '#e1e4e8' : col + '66';
+      d.style.borderColor = state==='healthy' ? '#333b45' : col + '66';
       d.querySelector('.l').textContent = 'p95 ' + Math.round(60 + r*340) + 'ms';
     });
     document.getElementById('ok').textContent = ok;

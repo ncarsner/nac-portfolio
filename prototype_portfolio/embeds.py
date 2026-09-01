@@ -41,19 +41,22 @@ DEMOS_DIR = _Path(__file__).parent / "demos"
 
 # id -> (file stem, default height). In the real site these become URLs of deployed
 # apps; the mechanic (an iframe holding a running thing) is identical either way.
-# Each demo ships a light and a dark build so an embedded app can match the page
-# it sits on rather than punching a dark hole in a light design.
+# Each demo is built once per page tone by demos/build.py, so a running artifact
+# shares the page's ground instead of punching a hole in it.
 EMBEDS = {
     "regex_lab": ("regex_lab", 430),
     "deploy_board": ("deploy_board", 400),
 }
 
+TONES = ("slate", "fog", "ash")
 
-def render(st, key, height=None, theme="light"):
+
+def render(st, key, height=None, tone="slate"):
     """Render a live demo in an iframe. Returns True if something was drawn."""
     if key not in EMBEDS:
         return False
     stem, h = EMBEDS[key]
-    fname = f"{stem}_light.html" if theme == "light" else f"{stem}.html"
-    st.iframe(DEMOS_DIR / fname, height=height or h)
+    if tone not in TONES:
+        tone = "slate"
+    st.iframe(DEMOS_DIR / f"{stem}_{tone}.html", height=height or h)
     return True

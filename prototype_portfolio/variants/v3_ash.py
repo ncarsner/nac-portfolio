@@ -1,26 +1,34 @@
 """
-VARIANT 3 — "Instrument Slate"
+VARIANT 3 — "Ash"
 
-Round 3, third reading. Light, but not stark. Some people mean "lighter" and still
-find a pure-white ground harsh on a text-dense page — so this keeps variant 1's
-exact density and structure and only moves the ground to warm paper, with the
-signal colour shifted from blue to rust to sit on it.
+The other reading of 'too light': keep a light interface, but take the white
+out of it. A grey paper ground with ink-grey text — light enough to read as a
+light theme, dim enough that a dense monospace page is not glaring.
+
+Round 4. Round 2 chose Instrument; "but lighter" was read as near-white and came
+back "too light". So this round brackets the middle of that range instead of
+running to either end. Density, structure and block order are unchanged from the
+original Instrument — the ground tone is the only variable.
 """
 import streamlit as st
 from content import SITE, KIND_LABEL
 from variants import shell
 
-NAME = "Instrument Slate — same density, warm paper"
+NAME = "Ash — light grey paper, not white"
 
 CSS = """
 <style>
-:root { --bg:#f7f5f1; --pan:#f1eee8; --r:#e2ddd3; --r2:#ebe7df;
-        --fg:#1c1917; --fg2:#4d473f; --m:#8b8378; --m2:#a8a094;
-        --a:#9a5426; --ok:#4d7c2f; }
+:root { --bg:#dfe3e7; --pan:#d7dce1; --r:#bcc4cc; --r2:#ccd3d9;
+        --fg:#1a1f26; --fg2:#3f4954; --m:#6b7681; --m2:#828d98;
+        --a:#0d4f9c; --ok:#26703a; --hv:#d2d8de; --sel:#cbd6e4; --selb:#a9bcd4;
+        --code:#d5dae0; }
 .stApp, section[data-testid="stSidebar"] { background:var(--bg); }
-.stApp, .stApp p, .stApp div, .stApp span, .stApp h1, .stApp h2, .stApp button {
+.stApp, .stApp p, .stApp div, .stApp span, .stApp h1, .stApp h2, .stApp button,
+.stApp pre, .stApp code {
   font-family: ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace !important; }
 section[data-testid="stSidebar"] { background:var(--pan); border-right:1px solid var(--r); }
+[data-testid="stExpandSidebarButton"] svg, [data-testid="stSidebarCollapseButton"] svg {
+  fill:var(--m) !important; color:var(--m) !important; }
 .who { font-size:12.5px; font-weight:600; color:var(--fg); letter-spacing:.02em; }
 .who span { display:block; font-size:10.5px; font-weight:400; color:var(--m);
             margin-top:5px; line-height:1.6; }
@@ -30,10 +38,10 @@ section[data-testid="stSidebar"] .stButton > button {
   width:100%; text-align:left; justify-content:flex-start; background:transparent;
   border:1px solid transparent; border-radius:3px; padding:3px 7px; min-height:0;
   font-size:12px; color:var(--fg2); font-weight:400; letter-spacing:-.01em; }
-section[data-testid="stSidebar"] .stButton > button:hover { background:#e8e3da; color:var(--fg); }
+section[data-testid="stSidebar"] .stButton > button:hover { background:var(--hv); color:var(--fg); }
 section[data-testid="stSidebar"] .stButton > button[kind="primary"],
 section[data-testid="stSidebar"] .stButton > button[data-testid="stBaseButton-primary"] {
-  background:#eee5da; border-color:#ddcbb6; color:var(--a); font-weight:600; }
+  background:var(--sel); border-color:var(--selb); color:var(--a); font-weight:600; }
 .hd { display:flex; align-items:baseline; gap:10px; padding-bottom:9px;
       border-bottom:1px solid var(--r); }
 .hd h2 { font-size:15px !important; margin:0; font-weight:600; color:var(--fg);
@@ -53,13 +61,17 @@ section[data-testid="stSidebar"] .stButton > button[data-testid="stBaseButton-pr
        margin:24px 0 7px; display:flex; align-items:center; gap:9px; }
 .lbl:after { content:""; flex:1; height:1px; background:var(--r2); }
 .pr { font-size:12.5px; line-height:1.85; color:var(--fg2); max-width:82ch; margin:0 0 12px; }
+.code { background:var(--code); border:1px solid var(--r); border-radius:4px;
+        padding:11px 13px; font-size:11.5px; line-height:1.65; color:var(--fg2);
+        overflow-x:auto; margin:0 0 9px; white-space:pre; }
+.code.cmd { color:var(--a); }
 .kv { display:flex; gap:10px; font-size:11.5px; padding:4px 0; border-bottom:1px solid var(--r2); }
 .kv .k { color:var(--m2); width:62px; flex:none; letter-spacing:.06em;
          text-transform:uppercase; font-size:9.5px; padding-top:2px; }
 .kv .v { color:var(--fg2); }
 .lk a { display:inline-block; font-size:11.5px; color:var(--a); text-decoration:none;
         border:1px solid var(--r); border-radius:3px; padding:3px 9px; margin:0 6px 6px 0; }
-.lk a:hover { border-color:var(--a); background:#f2ece3; }
+.lk a:hover { border-color:var(--a); background:var(--hv); }
 .wrap { padding-bottom:120px; }
 </style>
 """
@@ -90,7 +102,7 @@ def render():
         ) + "</div>", unsafe_allow_html=True)
 
     st.markdown(f'<div class="lbl">{shell.stage_label(a)}</div>', unsafe_allow_html=True)
-    shell.stage(a, height=470, placeholder_tint="#6b4526")
+    shell.stage(a, placeholder_tint="#31506f", tone="ash")
 
     left, right = st.columns([1.7, 1], gap="large")
     with left:
