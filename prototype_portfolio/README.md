@@ -111,15 +111,15 @@ machine.
 | Mode | **dark** | dark / mid / light |
 | Colour base | **blue** | blue / green / silver / gold / magenta |
 | Text size | **100%** | eight steps, 80-150% |
-| High contrast | **on** | pushes text to the extremes, rules to 2px |
 | Reduce motion | **on** | stops the live demos animating |
+| High contrast | off | pushes text to the extremes, rules to 2px |
 | Readable font | off | wider sans instead of monospace |
 | Underline links | off | do not signal links by colour alone |
 
-**The defaults are accessibility-forward**: the page starts at high contrast with
-motion reduced, and someone who wants the softer, animated version opts into it.
-That is the safer direction to be wrong in — nobody is harmed by too much
-contrast or too little animation, and the reverse is not true.
+**Reduced motion is on by default; high contrast is not.** Motion is the one
+where the default costs nothing — a still page reads the same to everyone, so
+there is no reason to make anyone opt out of it. High contrast genuinely changes
+the look the design settled on over four rounds, so it stays opt-in.
 
 Note `motion` is stored as *"motion is allowed"*, so reduced motion is
 `motion=False`. Worth knowing before reading `DEFAULTS`.

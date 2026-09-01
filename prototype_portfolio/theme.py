@@ -111,10 +111,12 @@ def text_pct(idx):
 MONO = "ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace"
 READABLE = "'Atkinson Hyperlegible',Verdana,'DejaVu Sans',ui-sans-serif,system-ui,sans-serif"
 
-# Accessibility-forward defaults: the page starts at high contrast with motion
-# reduced, and someone who wants the softer, animated version opts into it. Note
-# `motion` is stored as "motion is allowed", so reduced motion is motion=False.
-DEFAULTS = dict(mode="dark", base="blue", text_idx=TEXT_DEFAULT, contrast=True,
+# Reduced motion is on by default; high contrast is not. Motion is the one where
+# the default costs nothing — a still page reads the same to everyone, so there is
+# no reason to make anyone opt out of it. High contrast genuinely changes the look
+# the design settled on over four rounds, so it stays opt-in.
+# Note `motion` is stored as "motion is allowed", so reduced motion is motion=False.
+DEFAULTS = dict(mode="dark", base="blue", text_idx=TEXT_DEFAULT, contrast=False,
                 readable=False, motion=False, underline=False)
 
 
