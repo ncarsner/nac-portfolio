@@ -50,8 +50,10 @@ def _size(s):
                          disabled=i == 0):
                 theme.step_text(-1)
         with val:
-            st.markdown(f'<p class="seg-val">{theme.text_pct(i)}</p>',
-                        unsafe_allow_html=True)
+            # Shows the current size and resets to 100% — the +/- steps are
+            # relative to that, so the readout and the reset are one control.
+            if st.button(theme.text_pct(i), key="size_reset"):
+                theme.reset_text()
         with inc:
             if st.button("", key="size_inc", icon=":material/text_increase:",
                          disabled=i == len(theme.TEXT_PCTS) - 1):

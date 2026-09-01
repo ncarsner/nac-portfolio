@@ -78,6 +78,12 @@ Ten-point steps rather than fifteen, and more of them:
 so the whole scale was rebased (`TEXT_BASE = 0.90`) rather than just relabelled.
 The ends disable rather than wrap.
 
+The middle cell is both the readout and the reset: it shows the current size and
+returns to 100% when selected. The `+`/`-` steps are relative to that, so the
+number and the control that restores it are one object rather than two. Its
+accessible name and tooltip change when it is already at the default — there is
+no point offering a reset to the value you are on.
+
 ### Contact row
 
 GitHub, email, LinkedIn and resume as inline 24x24 SVG using `currentColor`, so
@@ -169,7 +175,7 @@ demos/build.py      builds each demo per mode, animated and still
 
 ## Streamlit chrome traps, recorded so they are not repeated
 
-Eight now, across seven rounds. Each was found in a real browser with Playwright,
+Nine now, across seven rounds. Each was found in a real browser with Playwright,
 not by reasoning — several survived a fix written from a guess.
 
 1. **Never hide `header[data-testid="stHeader"]` or `[data-testid="stToolbar"]`.**
@@ -191,7 +197,10 @@ not by reasoning — several survived a fix written from a guess.
    explicit `min-height`.
 7. **A button wrapper is shrink-to-fit**, so `width:100%` on the button resolves
    against the icon's own width.
-8. **CSS unicode escapes get mangled** on the way through the f-string that
+8. **`section[data-testid="stSidebar"] .stButton button` outranks a bare
+   `.st-key-<key> button`**, so per-control overrides need the sidebar prefix or
+   they silently do nothing. Same family as trap 4, and just as quiet.
+9. **CSS unicode escapes get mangled** on the way through the f-string that
    builds the stylesheet — `quotes:'\201C'` rendered as `·C`. Use literal
    characters in `content:`.
 
@@ -209,7 +218,7 @@ not by reasoning — several survived a fix written from a guess.
 - **Settings do not persist.** Reload and you are back to dark / blue / 100%.
   Persisting them is a real decision (cookie? localStorage? account?) and a
   prototype should not quietly assume one.
-- **Streamlit is still on trial.** Eight traps in seven rounds, all the same
+- **Streamlit is still on trial.** Nine traps in seven rounds, all the same
   shape: depending on internal class names and test ids with no compatibility
   guarantee. The accessibility layer is the sharpest case — it exists only
   because there is no supported way to set an aria attribute, and it would break

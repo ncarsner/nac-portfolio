@@ -29,6 +29,11 @@ def _labels(s, drawer_open):
         "opt_reset": "Reset all appearance options to defaults",
         "size_dec": f"Decrease text size. Currently {theme.text_pct(s['text_idx'])}",
         "size_inc": f"Increase text size. Currently {theme.text_pct(s['text_idx'])}",
+        # No point offering a reset to the value you are already on.
+        "size_reset": (f"Text size {theme.text_pct(s['text_idx'])}, the default"
+                       if s["text_idx"] == theme.TEXT_DEFAULT else
+                       f"Text size {theme.text_pct(s['text_idx'])}. "
+                       f"Select to reset to {theme.text_pct(theme.TEXT_DEFAULT)}"),
         "tg_motion": "Reduce motion. Stops the live demos animating",
         "tg_contrast": "High contrast. Stronger text and borders",
         "tg_readable": "Readable font. A wider sans face instead of monospace",
@@ -73,6 +78,15 @@ def emit(s, drawer_open=False):
         "radiogroup": (["mode_" + k for k in theme.MODES]
                        + ["base_" + k for k in theme.BASES]),
         "current": {f"nav_{st.session_state.get('wb_sel')}": True},
+        # Hover tooltips, for the controls whose meaning is not on their face.
+        "titles": {
+            "size_dec": "Smaller text",
+            "size_inc": "Larger text",
+            "size_reset": ("Default text size" if s["text_idx"] == theme.TEXT_DEFAULT
+                           else f"Reset text size to {theme.text_pct(theme.TEXT_DEFAULT)}"),
+            **{f"mode_{k}": f'{m["label"]} mode' for k, m in theme.MODES.items()},
+            **{f"base_{k}": f'{b["label"]} base' for k, b in theme.BASES.items()},
+        },
         "demoTitle": "Live demo, running in the page",
         "imageAlt": "Placeholder screenshot standing in for a real one",
     }

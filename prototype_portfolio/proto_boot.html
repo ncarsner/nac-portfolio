@@ -47,7 +47,7 @@
 
     var labels = map.labels || {}, pressed = map.pressed || {},
         expanded = map.expanded || {}, group = map.radiogroup || [],
-        current = map.current || {};
+        current = map.current || {}, titles = map.titles || {};
 
     Object.keys(labels).forEach(function (key) {
       var wrap = doc.querySelector('.st-key-' + key);
@@ -55,6 +55,7 @@
       var btn = wrap.querySelector('button');
       if (!btn) return;
       btn.setAttribute('aria-label', labels[key]);
+      if (titles[key]) btn.setAttribute('title', titles[key]);
       // A control whose icon is its only content must not leak the ligature
       // name to assistive tech as well.
       var ic = btn.querySelector('[data-testid="stIconMaterial"]');

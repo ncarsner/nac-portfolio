@@ -132,6 +132,12 @@ def step_text(delta):
     st.rerun()
 
 
+def reset_text():
+    """Back to 100%. The +/- steps are relative to this."""
+    st.session_state["opt_text_idx"] = TEXT_DEFAULT
+    st.rerun()
+
+
 def toggle(key):
     st.session_state[f"opt_{key}"] = not st.session_state[f"opt_{key}"]
     st.rerun()
@@ -313,10 +319,16 @@ section[data-testid="stSidebar"] [data-testid="stElementContainer"]:has(.quote) 
   font-size:calc(17px*var(--s)) !important; color:var(--fg2); }}
 .st-key-mode_seg .stButton button[data-testid="stBaseButton-primary"]
   [data-testid="stIconMaterial"] {{ color:var(--a); }}
-.seg-val {{ font-size:calc(10.5px*var(--s)) !important; color:var(--fg2);
-  text-align:center; line-height:calc(30px*var(--s)) !important; margin:0; padding:0;
-  border-top:1px solid var(--r); border-bottom:1px solid var(--r);
-  height:calc(30px*var(--s)); font-variant-numeric:tabular-nums; }}
+/* The middle cell of the size strip is the current value AND the reset control:
+   the +/- steps are relative to the 100% it returns to, so the number and the
+   thing that restores it are the same object. */
+/* Needs the sidebar prefix: `section[...] .stButton button` outranks a bare
+   `.st-key-* button`, so without it the font-size here silently does nothing. */
+section[data-testid="stSidebar"] .st-key-size_reset button {{
+  font-variant-numeric:tabular-nums; font-size:calc(11.5px*var(--s)) !important;
+  color:var(--fg2) !important; letter-spacing:.04em; }}
+section[data-testid="stSidebar"] .st-key-size_reset button:hover {{
+  color:var(--a) !important; }}
 /* the value cell sits flush between the two buttons */
 .st-key-size_seg [data-testid="stColumn"]:nth-child(2) [data-testid="stElementContainer"] {{
   min-height:0 !important; }}
