@@ -7,10 +7,10 @@ Nothing here is persisted; it is a module-level constant, in memory.
 """
 
 SITE = {
-    "name": "Sam Rivera",
-    "role": "Software engineer",
-    "tagline": "I build small tools that survive contact with production.",
-    "location": "Portland, OR",
+    "name": "Nicholas Carsner",
+    "role": "Analyst, Orchestrator, Consultant",
+    "tagline": "Continuous Improvement.",
+    "location": "Nashville Metro Area",
     "blurb": (
         "Backend and developer-tooling work, mostly Python and TypeScript. "
         "I like problems where the hard part is the data model, not the framework. "
@@ -18,9 +18,9 @@ SITE = {
         "mid-size startups."
     ),
     "links": {
-        "GitHub": "https://github.com/",
-        "Email": "mailto:sam@example.com",
-        "LinkedIn": "https://linkedin.com/",
+        "GitHub": "https://github.com/ncarsner",
+        "Email": "mailto:nicholascarsner@gmail.com",
+        "LinkedIn": "https://www.linkedin.com/in/nicholascarsner/",
         "Resume": "#",
     },
 }
