@@ -10,10 +10,10 @@ Written to answer a question, then to be deleted.
 **Answer: the "Workbench" layout.** A sidebar cataloguing every artifact; a main
 pane that runs the selected one full size. Prose is the fallback for things that
 cannot run, not the default presentation. The losing variants are in `main`'s
-history at commit `faa0a8a`, recoverable with:
+history at commit `dd8b3f7`, recoverable with:
 
 ```
-git show faa0a8a:prototype_portfolio/variants/variant_a.py
+git show dd8b3f7:prototype_portfolio/variants/variant_a.py
 ```
 
 ## Round 2 — settled
@@ -22,12 +22,12 @@ git show faa0a8a:prototype_portfolio/variants/variant_a.py
 
 **Answer: "Instrument"** — dense, monospace, hairline rules, no decoration,
 colour only where it carries signal. The rejected treatments (Editorial, Console)
-are in history at `ce5b8ba`.
+are in history at `88311be`.
 
 ## Round 3 — overshot
 
 Read "but lighter" as near-white. Verdict: **too light.** Kept in history at
-`0870c92`.
+`3960a2a`.
 
 ## Round 4 — settled
 
@@ -37,7 +37,7 @@ Read "but lighter" as near-white. Verdict: **too light.** Kept in history at
 
 **Drawer.** Collapsed to a single "Appearance" line with a summary of what is
 active, so the sidebar belongs to the work until someone wants the controls. The
-rejected panels (Swatches, List) are in history at `0727b25`.
+rejected panels (Swatches, List) are in history at `81a9de2`.
 
 ## Round 6-7 — refinements
 
