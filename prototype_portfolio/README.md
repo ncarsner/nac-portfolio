@@ -11,7 +11,7 @@ Written to answer a question, then to be deleted.
 pane that runs the selected one full size. Prose is the fallback for things that
 cannot run, not the default presentation. Reasoning and the two rejected
 structures are in [`../DECISION.md`](../DECISION.md); the losing variants are on
-this branch at commit `faa0a8a`, recoverable with:
+`main`'s history at commit `faa0a8a`, recoverable with:
 
 ```
 git show faa0a8a:prototype_portfolio/variants/variant_a.py
