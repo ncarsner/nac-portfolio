@@ -1,7 +1,7 @@
 """
 PROTOTYPE — portfolio, round 5.  THROWAWAY CODE. Do not promote as-is.
 
-Settled in earlier rounds (see ../DECISION.md and the git log):
+Settled in earlier rounds (see the git log):
   round 1  LAYOUT    Workbench — sidebar catalogue, main pane runs the artifact
   round 2  LANGUAGE  Instrument — dense, monospace, hairline rules
   round 4  TONE      Slate, now the default

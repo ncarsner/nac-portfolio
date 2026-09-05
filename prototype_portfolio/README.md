@@ -9,9 +9,8 @@ Written to answer a question, then to be deleted.
 
 **Answer: the "Workbench" layout.** A sidebar cataloguing every artifact; a main
 pane that runs the selected one full size. Prose is the fallback for things that
-cannot run, not the default presentation. Reasoning and the two rejected
-structures are in [`../DECISION.md`](../DECISION.md); the losing variants are on
-`main`'s history at commit `faa0a8a`, recoverable with:
+cannot run, not the default presentation. The losing variants are in `main`'s
+history at commit `faa0a8a`, recoverable with:
 
 ```
 git show faa0a8a:prototype_portfolio/variants/variant_a.py
