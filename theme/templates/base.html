@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark" data-hue="blue" data-motion="off">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ SITENAME }}{% endblock %}</title>
+<meta name="description" content="{% block description %}{{ SITENAME }} — {{ SITESUBTITLE }}{% endblock %}">
+<link rel="stylesheet" href="{{ SITEURL }}/theme/css/palettes.css">
+<link rel="stylesheet" href="{{ SITEURL }}/theme/css/instrument.css">
+<script>
+/* Applied before first paint so a stored setting never flashes the default. */
+(function () {
+  try {
+    var s = JSON.parse(localStorage.getItem("nac.settings") || "{}");
+    var r = document.documentElement;
+    if (s.mode) r.dataset.mode = s.mode;
+    if (s.hue) r.dataset.hue = s.hue;
+    if (s.contrast) r.dataset.contrast = s.contrast;
+    if (s.readable) r.dataset.readable = s.readable;
+    if (s.underline) r.dataset.underline = s.underline;
+    if (s.motion) r.dataset.motion = s.motion;
+    if (s.size) r.style.setProperty("--size", s.size);
+  } catch (e) { /* storage unavailable: the defaults are correct anyway */ }
+})();
+</script>
+</head>
+<body>
+<a class="skip" href="#stage">Skip to content</a>
+<div class="wb">
+
+  <aside class="side">
+    <div class="who">{{ SITENAME }}</div>
+    <div class="role">{{ SITESUBTITLE }}</div>
+
+    <blockquote class="quote" id="quote">
+      {% if QUOTES %}<q>{{ QUOTES[0].text }}</q><cite>{{ QUOTES[0].attribution }}</cite>{% endif %}
+    </blockquote>
+
+    <nav aria-label="Catalogue">
+    {% for kind in KIND_ORDER %}
+      {% set items = articles | selectattr("category.name", "equalto", kind) | list %}
+      {% if items or (kind == "writing" and SYNDICATED) %}
+        <div class="grp">{{ KIND_LABEL[kind] }}</div>
+        <ul class="cat">
+        {% for a in items %}
+          <li><a href="{{ SITEURL }}/{{ a.url }}"
+                 {% if a == article %}aria-current="page" class="on"{% endif %}>
+              <span class="dot" aria-hidden="true">{% if a.embed %}&#9679;{% else %}&#9675;{% endif %}</span>{{ a.title }}</a></li>
+        {% endfor %}
+        {% if kind == "writing" %}
+          {% for p in SYNDICATED %}
+          <li><a href="{{ p.url }}" class="ext">
+              <span class="dot" aria-hidden="true">&#9675;</span>{{ p.title }}
+              <span class="when">{{ p.date }}</span></a></li>
+          {% endfor %}
+        {% endif %}
+        </ul>
+      {% endif %}
+    {% endfor %}
+    </nav>
+
+    <div class="grp">Contact</div>
+    <div class="contact">
+      {% for label, href in CONTACT %}
+      <a href="{{ href }}" aria-label="{{ label }}" title="{{ label }}"
+         {% if not href.startswith('mailto') %}target="_blank" rel="noopener"{% endif %}>
+        {% if label == "GitHub" %}
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2 0-.4-.5-1.6.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.7 1.6.2 2.8.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/></svg>
+        {% elif label == "Email" %}
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3 6 9 6.5L21 6"/></svg>
+        {% else %}
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" focusable="false"><path d="M4.98 3.5A2.5 2.5 0 1 0 5 8.5a2.5 2.5 0 0 0 0-5ZM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C20.3 8.65 21 11 21 14.1V21h-4v-6.1c0-1.45-.03-3.32-2.03-3.32-2.03 0-2.34 1.58-2.34 3.21V21H9z"/></svg>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+
+    <div class="grp">Mode</div>
+    <div class="seg" role="radiogroup" aria-label="Colour mode">
+      <button type="button" data-set="mode" data-val="dark"  role="radio" aria-label="Dark mode">&#9789;</button>
+      <button type="button" data-set="mode" data-val="mid"   role="radio" aria-label="Mid mode">&#9686;</button>
+      <button type="button" data-set="mode" data-val="light" role="radio" aria-label="Light mode">&#9788;</button>
+    </div>
+
+    <div class="grp">Text size</div>
+    <div class="seg step">
+      <button type="button" data-step="-1" aria-label="Decrease text size">A&minus;</button>
+      <button type="button" data-step="0" id="sizereset" aria-label="Text size, currently 100 percent. Reset to 100 percent">100%</button>
+      <button type="button" data-step="1" aria-label="Increase text size">A+</button>
+    </div>
+
+    <details class="opts">
+      <summary>Appearance Options</summary>
+      <div class="grp">Colour</div>
+      <div class="seg" role="radiogroup" aria-label="Colour hue">
+        <button type="button" data-set="hue" data-val="blue"   role="radio">Blue</button>
+        <button type="button" data-set="hue" data-val="silver" role="radio">Silver</button>
+      </div>
+      <ul class="toggles">
+        <li><button type="button" data-toggle="contrast"  aria-pressed="false">High contrast</button></li>
+        <li><button type="button" data-toggle="readable"  aria-pressed="false">Readable font</button></li>
+        <li><button type="button" data-toggle="underline" aria-pressed="false">Underline links</button></li>
+        <li><button type="button" data-toggle="motion"    aria-pressed="true">Reduce motion</button></li>
+      </ul>
+    </details>
+
+    <p class="summary" id="summary" role="status"></p>
+  </aside>
+
+  <main class="main" id="stage">{% block main %}{% endblock %}</main>
+</div>
+
+<script id="quotes" type="application/json">{{ QUOTES | tojson }}</script>
+<script src="{{ SITEURL }}/theme/js/settings.js" defer></script>
+</body>
+</html>

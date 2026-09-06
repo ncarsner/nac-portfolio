@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} — {{ SITENAME }}{% endblock %}
+{% block description %}{{ article.oneliner }}{% endblock %}
+{% block main %}
+<article class="stage">
+
+  <header class="hd">
+    <h1>{{ article.title }}</h1>
+    <span class="meta">{{ article.category.name | capitalize }} &middot; {{ article.year }}</span>
+    <span class="st">{{ article.release }}</span>
+  </header>
+  <p class="sub">{{ article.oneliner }}</p>
+
+  {% if article.metrics %}
+  <dl class="strip">
+    {% for pair in article.metrics.split(',') %}
+      {% set bits = pair.strip().split('=', 1) %}
+      {% if bits | length == 2 %}
+      <div><dt>{{ bits[1] }}</dt><dd>{{ bits[0] }}</dd></div>
+      {% endif %}
+    {% endfor %}
+  </dl>
+  {% endif %}
+
+  {% if article.embed %}
+  <div class="lbl">{{ article.stagelabel | default("Running now") }}</div>
+  <div class="embed" data-src="{{ article.embed }}">
+    <div class="embed-ph">
+      <p>This artifact runs in place. It is loaded only when you ask for it —
+         a hosted app can take a moment to wake, and that wait should be yours
+         to start.</p>
+      <button type="button" class="run">&#9654; Run it</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="cols">
+    <div class="notes">
+      {% if not article.embed %}<div class="lbl">{{ article.stagelabel | default("Use it") }}</div>{% endif %}
+      {{ article.content }}
+    </div>
+
+    <aside class="facts" aria-label="Facts">
+      <div class="lbl">Facts</div>
+      <dl class="kv">
+        <div><dt>Kind</dt><dd>{{ article.category.name | capitalize }}</dd></div>
+        <div><dt>Year</dt><dd>{{ article.year }}</dd></div>
+        <div><dt>Status</dt><dd>{{ article.release }}</dd></div>
+        {% if article.stack %}<div><dt>Stack</dt><dd>{{ article.stack }}</dd></div>{% endif %}
+        {% if article.topics %}<div><dt>Tags</dt><dd>{{ article.topics }}</dd></div>{% endif %}
+      </dl>
+      {% if article.links %}
+      <div class="lk">
+        {% for pair in article.links.split(',') %}
+          {% set bits = pair.strip().split('=', 1) %}
+          {% if bits | length == 2 %}
+          <a href="{{ bits[1] }}" target="_blank" rel="noopener">{{ bits[0] }} &rarr;</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </aside>
+  </div>
+</article>
+{% endblock %}

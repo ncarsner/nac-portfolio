@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block main %}
+<div class="stage">
+  <header class="hd">
+    <h1>{{ SITENAME }}</h1>
+    <span class="meta">{{ SITESUBTITLE }}</span>
+  </header>
+  <p class="sub">Things I have built: web applications, command-line tools,
+     published packages and writing. Pick one from the catalogue — anything that
+     can run, runs here.</p>
+
+  <div class="lbl">Everything</div>
+  <ul class="grid">
+    {% for kind in KIND_ORDER %}
+      {% for a in articles | selectattr("category.name", "equalto", kind) | list %}
+      <li>
+        <a href="{{ SITEURL }}/{{ a.url }}">
+          <span class="k">{{ a.category.name }}</span>
+          <strong>{{ a.title }}</strong>
+          <span class="o">{{ a.oneliner }}</span>
+          <span class="s">{{ a.status }}</span>
+        </a>
+      </li>
+      {% endfor %}
+    {% endfor %}
+  </ul>
+
+  {% if SYNDICATED %}
+  <div class="lbl">Recent writing</div>
+  <ul class="posts">
+    {% for p in SYNDICATED %}
+    <li><a href="{{ p.url }}" target="_blank" rel="noopener">{{ p.title }}</a>
+        <span class="when">{{ p.date }}</span></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}
