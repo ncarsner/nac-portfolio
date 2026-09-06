@@ -23,10 +23,14 @@
   function apply() {
     root.dataset.mode = state.mode;
     root.dataset.hue = state.hue;
-    ["contrast", "readable", "underline", "motion"].forEach(function (k) {
+    ["contrast", "readable", "underline"].forEach(function (k) {
       if (state[k] === "on") root.dataset[k] = "on"; else delete root.dataset[k];
     });
+    /* `motion` is stored as "motion is ALLOWED", so reduced motion is
+       motion === "off". Everything about this setting reads backwards; keep the
+       inversion in exactly these two places and nowhere else. */
     if (state.motion === "off") root.dataset.motion = "off";
+    else delete root.dataset.motion;
     root.style.setProperty("--size", (state.pct / 100).toFixed(2));
     state.size = (state.pct / 100).toFixed(2);
 
@@ -34,7 +38,11 @@
       b.setAttribute("aria-checked", String(state[b.dataset.set] === b.dataset.val));
     });
     document.querySelectorAll("[data-toggle]").forEach(function (b) {
-      var on = state[b.dataset.toggle] === "on";
+      var k = b.dataset.toggle;
+      /* The control is labelled "Reduce motion", so it is pressed when motion
+         is NOT allowed. Reading state.motion directly here showed the box
+         unchecked while reduced motion was active. */
+      var on = k === "motion" ? state.motion === "off" : state[k] === "on";
       b.setAttribute("aria-pressed", String(on));
     });
 

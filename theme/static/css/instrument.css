@@ -49,23 +49,53 @@ body { margin: 0; background: var(--bg); color: var(--fg);
 
 /* ---- controls ---- */
 .seg { display: flex; }
-.seg button { flex: 1; background: var(--bg); color: var(--fg2); border: 1px solid var(--r2);
-              padding: .38rem 0; font-family: var(--mono); font-size: .72rem; cursor: pointer; }
+.seg button { flex: 1; display: flex; align-items: center; justify-content: center; gap: .4rem;
+              background: var(--bg); color: var(--m); border: 1px solid var(--r2);
+              padding: .42rem 0; font-family: var(--mono); font-size: .72rem; cursor: pointer; }
 .seg button + button { border-left: 0; }
 .seg button:first-child { border-radius: 3px 0 0 3px; }
 .seg button:last-child { border-radius: 0 3px 3px 0; }
 .seg button:hover:not([disabled]) { background: var(--hv); color: var(--fg); }
-.seg button[aria-checked="true"] { background: var(--sel); border-color: var(--selb); color: var(--a); }
 .seg button[disabled] { opacity: .4; cursor: default; }
+
+/* Selected is a SOLID fill, not a tint. A tint of the panel colour is almost
+   invisible in dark mode, which is what the first version got wrong. Text is
+   --bg on --a, so it inverts correctly in light mode too, and the pair is
+   already covered by the contrast audit. */
+.seg button[aria-checked="true"] {
+  background: var(--a); border-color: var(--a); color: var(--bg); font-weight: 700; }
+.seg button[aria-checked="true"]:hover { background: var(--a); color: var(--bg); }
+
+.seg.icons svg { width: 1.15rem; height: 1.15rem; display: block; }
+.seg.icons button { padding: .34rem 0; }
+.seg.chips .sw { width: .72rem; height: .72rem; border-radius: 50%; display: inline-block;
+                 border: 1px solid rgba(128,128,128,.45); }
+.seg.chips .sw-blue { background: var(--a); }
+.seg.chips .sw-silver { background: var(--m); }
+/* On the selected chip the fill IS the hue, so a hue-coloured dot vanishes
+   into it. Invert the dot instead. */
+.seg.chips button[aria-checked="true"] .sw { background: var(--bg); border-color: var(--bg); }
 .opts { margin-top: 1.2rem; }
 .opts summary { cursor: pointer; color: var(--m); font-size: .68rem;
                 text-transform: uppercase; letter-spacing: .1em; padding: .3rem 0; }
+/* Toggles state their status three ways at once — a drawn box that fills, a
+   tick, and the label brightening. A bare ballot-box glyph was too small and
+   too faint to read at a glance, which was the complaint. */
 .toggles { list-style: none; margin: .5rem 0 0; padding: 0; }
-.toggles button { width: 100%; text-align: left; background: none; border: 0; cursor: pointer;
-                  color: var(--fg2); font-family: var(--mono); font-size: .73rem; padding: .3rem .2rem; }
-.toggles button::before { content: "\2610"; margin-right: .5rem; color: var(--m); }
-.toggles button[aria-pressed="true"]::before { content: "\2611"; color: var(--a); }
+.toggles button { width: 100%; display: flex; align-items: center; gap: .55rem;
+                  text-align: left; background: none; border: 0; cursor: pointer;
+                  color: var(--m); font-family: var(--mono); font-size: .73rem;
+                  padding: .34rem .2rem; }
+.toggles button::before {
+  content: ""; flex: none; width: .95rem; height: .95rem; border-radius: 3px;
+  border: 1px solid var(--m2); background: var(--bg);
+  background-position: center; background-repeat: no-repeat; background-size: .72rem .72rem; }
+.toggles button[aria-pressed="true"] { color: var(--fg); font-weight: 700; }
+.toggles button[aria-pressed="true"]::before {
+  border-color: var(--a); background-color: var(--a);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' d='m3.4 8.4 3 3 6.2-6.6'/%3E%3C/svg%3E"); }
 .toggles button:hover { color: var(--fg); }
+.toggles button:hover::before { border-color: var(--a); }
 .summary { color: var(--m2); font-size: .63rem; margin-top: 1.1rem; }
 
 /* ---- stage ---- */
